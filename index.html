@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Контекстная инженерия: interactive mind map</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="mindmap-stage">
+        <div class="stage-overlay stage-topbar">
+          <div class="hint-block">
+            <div class="hint-title">Context Engineering Mind Map</div>
+            <p class="hint-copy">
+              Клик по карточке открывает детали. Перетаскивание двигает узел. Колесо мыши меняет масштаб, перетаскивание фона двигает карту.
+            </p>
+          </div>
+
+          <div class="toolbar-block">
+            <div class="toolbar-row chips-row">
+              <button class="chip is-active" data-filter="all">Все</button>
+              <button class="chip" data-filter="основа">Основа</button>
+              <button class="chip" data-filter="retrieval">Retrieval</button>
+              <button class="chip" data-filter="compression">Compression</button>
+              <button class="chip" data-filter="memory">Memory</button>
+              <button class="chip" data-filter="runtime">Runtime</button>
+              <button class="chip" data-filter="evaluation">Evaluation</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="stage-overlay detail-dock">
+          <div class="detail-header">
+            <div class="breadcrumb" id="breadcrumb"></div>
+            <h2 class="detail-title" id="detail-title"></h2>
+            <p class="detail-subtitle" id="detail-subtitle"></p>
+          </div>
+
+          <div class="detail-scroll">
+            <section class="detail-card">
+              <h3>Зачем это важно</h3>
+              <p id="detail-why"></p>
+            </section>
+
+            <section class="detail-card">
+              <h3>Пример</h3>
+              <p id="detail-example"></p>
+            </section>
+
+            <section class="detail-card">
+              <h3>Ключевые тезисы</h3>
+              <div class="bullets" id="detail-insights"></div>
+            </section>
+
+            <section class="detail-card">
+              <h3>Теги</h3>
+              <div class="tags" id="detail-tags"></div>
+            </section>
+
+            <section class="detail-card">
+              <h3>Источники</h3>
+              <div class="source-list" id="detail-sources"></div>
+            </section>
+          </div>
+        </div>
+
+        <div class="viewport" id="viewport">
+          <div class="board" id="board">
+            <svg class="connections" id="connections" preserveAspectRatio="none"></svg>
+            <div class="node-layer" id="node-layer"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="mindmap-data.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
