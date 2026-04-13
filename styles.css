@@ -326,7 +326,10 @@ body::before {
 }
 
 .viz-approval-loop,
-.viz-checkpoint-loop {
+.viz-checkpoint-loop,
+.viz-event-loop,
+.viz-planner-loop,
+.viz-tool-contract-loop {
   display: grid;
   gap: 12px;
 }
@@ -711,6 +714,13 @@ body::before {
   gap: 10px;
 }
 
+.viz-event-panels,
+.viz-tool-contract-panels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
 .viz-approval-panels,
 .viz-checkpoint-panels {
   display: grid;
@@ -781,6 +791,10 @@ body::before {
   padding: 12px;
   display: grid;
   gap: 8px;
+  align-content: start;
+  grid-auto-rows: max-content;
+  height: max-content;
+  overflow: visible;
   animation: viz-rise-in 420ms ease both;
   min-width: 0;
   transition:
@@ -841,13 +855,15 @@ body::before {
   line-height: 1.45;
   color: var(--ink);
   overflow-wrap: anywhere;
+  overflow: visible;
+  white-space: normal;
   transition:
     opacity 700ms ease,
     max-height 700ms ease,
     margin 700ms ease,
     padding 700ms ease,
     transform 700ms ease;
-  max-height: 80px;
+  max-height: 999px;
   opacity: 1;
   animation: viz-rise-in 420ms ease both;
 }
@@ -1162,6 +1178,8 @@ body::before {
   .viz-load-grid,
   .viz-summary-check-panels,
   .viz-tool-loading-panels,
+  .viz-event-panels,
+  .viz-tool-contract-panels,
   .viz-approval-panels,
   .viz-checkpoint-panels,
   .viz-handoff-panels,

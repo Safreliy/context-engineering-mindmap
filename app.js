@@ -1433,6 +1433,494 @@ function renderToolLoadingViz(viz) {
   return root;
 }
 
+function renderEventReplayViz(viz) {
+  const root = document.createElement("div");
+  root.className = "detail-viz";
+  const caption = makeVizText("p", "viz-caption", viz.caption);
+  setVizDelay(caption, 20);
+  root.appendChild(caption);
+
+  const loop = document.createElement("div");
+  loop.className = "viz-event-loop";
+
+  const controls = document.createElement("div");
+  controls.className = "viz-controls";
+  setVizDelay(controls, 50);
+
+  const playButton = document.createElement("button");
+  playButton.type = "button";
+  playButton.className = "viz-control-btn viz-play-btn";
+  playButton.textContent = "❚❚";
+  controls.appendChild(playButton);
+
+  const stepper = document.createElement("div");
+  stepper.className = "viz-stepper";
+  const stepButtons = (viz.stages || []).map((title, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "viz-step-btn";
+    button.textContent = `${index + 1}. ${title}`;
+    stepper.appendChild(button);
+    return button;
+  });
+  controls.appendChild(stepper);
+  loop.appendChild(controls);
+
+  const status = makeVizText("div", "viz-loop-status", "");
+  setVizDelay(status, 70);
+  loop.appendChild(status);
+
+  const stages = document.createElement("div");
+  stages.className = "viz-stage-row";
+  const stageItems = (viz.stages || []).map((title, index) => {
+    const item = document.createElement("div");
+    item.className = "viz-stage";
+    setVizDelay(item, 100 + index * 60);
+    item.appendChild(makeVizText("span", "viz-stage-step", `${index + 1}`));
+    item.appendChild(makeVizText("strong", "viz-stage-label", title));
+    stages.appendChild(item);
+    return item;
+  });
+  loop.appendChild(stages);
+
+  const panels = document.createElement("div");
+  panels.className = "viz-event-panels";
+
+  const logPanel = document.createElement("div");
+  logPanel.className = "viz-column";
+  logPanel.appendChild(makeVizText("h4", "", viz.logTitle || "Журнал событий"));
+  const logLines = (viz.logLines || []).map((line, index) => {
+    const item = makeVizText("div", "viz-line", line);
+    setVizDelay(item, 300 + index * 30);
+    logPanel.appendChild(item);
+    return item;
+  });
+
+  const slicePanel = document.createElement("div");
+  slicePanel.className = "viz-column";
+  slicePanel.appendChild(makeVizText("h4", "", viz.sliceTitle || "Срез"));
+  const slicePending = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-pending",
+    viz.slicePending || "Срез ещё не выбран."
+  );
+  slicePanel.appendChild(slicePending);
+  const sliceLines = (viz.sliceLines || []).map((line, index) => {
+    const item = makeVizText(
+      "div",
+      "viz-live-line viz-live-line-checkpoint is-collapsed",
+      line
+    );
+    setVizDelay(item, 520 + index * 45);
+    slicePanel.appendChild(item);
+    return item;
+  });
+
+  const statePanel = document.createElement("div");
+  statePanel.className = "viz-column";
+  statePanel.appendChild(
+    makeVizText("h4", "", viz.stateTitle || "Восстановленное состояние")
+  );
+  const statePending = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-pending",
+    viz.statePending || "Состояние ещё не восстановлено."
+  );
+  statePanel.appendChild(statePending);
+  const stateLines = (viz.stateLines || []).map((line, index) => {
+    const item = makeVizText(
+      "div",
+      "viz-live-line viz-live-line-approved is-collapsed",
+      line
+    );
+    setVizDelay(item, 700 + index * 45);
+    statePanel.appendChild(item);
+    return item;
+  });
+  const resumeLine = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-continue is-collapsed",
+    viz.resumeLine || "Активное окно получает только рабочий срез."
+  );
+  setVizDelay(resumeLine, 860);
+  statePanel.appendChild(resumeLine);
+
+  panels.appendChild(logPanel);
+  panels.appendChild(slicePanel);
+  panels.appendChild(statePanel);
+  loop.appendChild(panels);
+
+  root.appendChild(loop);
+  root._eventReplayViz = {
+    status,
+    stageItems,
+    playButton,
+    stepButtons,
+    logPanel,
+    slicePanel,
+    statePanel,
+    slicePending,
+    sliceLines,
+    statePending,
+    stateLines,
+    resumeLine
+  };
+  return root;
+}
+
+function renderPlannerExecutorViz(viz) {
+  const root = document.createElement("div");
+  root.className = "detail-viz";
+  const caption = makeVizText("p", "viz-caption", viz.caption);
+  setVizDelay(caption, 20);
+  root.appendChild(caption);
+
+  const loop = document.createElement("div");
+  loop.className = "viz-planner-loop";
+
+  const controls = document.createElement("div");
+  controls.className = "viz-controls";
+  setVizDelay(controls, 50);
+
+  const playButton = document.createElement("button");
+  playButton.type = "button";
+  playButton.className = "viz-control-btn viz-play-btn";
+  playButton.textContent = "❚❚";
+  controls.appendChild(playButton);
+
+  const stepper = document.createElement("div");
+  stepper.className = "viz-stepper";
+  const stepButtons = (viz.stages || []).map((title, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "viz-step-btn";
+    button.textContent = `${index + 1}. ${title}`;
+    stepper.appendChild(button);
+    return button;
+  });
+  controls.appendChild(stepper);
+  loop.appendChild(controls);
+
+  const status = makeVizText("div", "viz-loop-status", "");
+  setVizDelay(status, 70);
+  loop.appendChild(status);
+
+  const stages = document.createElement("div");
+  stages.className = "viz-stage-row";
+  const stageItems = (viz.stages || []).map((title, index) => {
+    const item = document.createElement("div");
+    item.className = "viz-stage";
+    setVizDelay(item, 100 + index * 60);
+    item.appendChild(makeVizText("span", "viz-stage-step", `${index + 1}`));
+    item.appendChild(makeVizText("strong", "viz-stage-label", title));
+    stages.appendChild(item);
+    return item;
+  });
+  loop.appendChild(stages);
+
+  const loadGrid = document.createElement("div");
+  loadGrid.className = "viz-load-grid";
+  setVizDelay(loadGrid, 250);
+
+  const plannerLoadCard = document.createElement("div");
+  plannerLoadCard.className = "viz-load-card";
+  const plannerLoadHead = document.createElement("div");
+  plannerLoadHead.className = "viz-load-head";
+  plannerLoadHead.appendChild(
+    makeVizText("h4", "", viz.plannerTitle || "Контур планирования")
+  );
+  const plannerLoadValue = makeVizText("span", "viz-load-value", "");
+  plannerLoadHead.appendChild(plannerLoadValue);
+  const plannerMeter = document.createElement("div");
+  plannerMeter.className = "viz-meter";
+  const plannerFill = document.createElement("div");
+  plannerFill.className = "viz-meter-fill";
+  plannerFill.dataset.state = "safe";
+  plannerFill.style.width = `${(viz.plannerLoadPercents || [24])[0]}%`;
+  plannerMeter.appendChild(plannerFill);
+  const plannerLoadCopy = makeVizText("div", "viz-load-copy", "");
+  plannerLoadCard.appendChild(plannerLoadHead);
+  plannerLoadCard.appendChild(plannerMeter);
+  plannerLoadCard.appendChild(plannerLoadCopy);
+
+  const executorLoadCard = document.createElement("div");
+  executorLoadCard.className = "viz-load-card";
+  const executorLoadHead = document.createElement("div");
+  executorLoadHead.className = "viz-load-head";
+  executorLoadHead.appendChild(
+    makeVizText("h4", "", viz.executorTitle || "Контур исполнения")
+  );
+  const executorLoadValue = makeVizText("span", "viz-load-value", "");
+  executorLoadHead.appendChild(executorLoadValue);
+  const executorMeter = document.createElement("div");
+  executorMeter.className = "viz-meter";
+  const executorFill = document.createElement("div");
+  executorFill.className = "viz-meter-fill";
+  executorFill.dataset.state = "safe";
+  executorFill.style.width = `${(viz.executorLoadPercents || [12])[0]}%`;
+  executorMeter.appendChild(executorFill);
+  const executorLoadCopy = makeVizText("div", "viz-load-copy", "");
+  executorLoadCard.appendChild(executorLoadHead);
+  executorLoadCard.appendChild(executorMeter);
+  executorLoadCard.appendChild(executorLoadCopy);
+
+  loadGrid.appendChild(plannerLoadCard);
+  loadGrid.appendChild(executorLoadCard);
+  loop.appendChild(loadGrid);
+
+  const panels = document.createElement("div");
+  panels.className = "viz-handoff-panels";
+
+  const plannerPanel = document.createElement("div");
+  plannerPanel.className = "viz-column";
+  plannerPanel.appendChild(
+    makeVizText("h4", "", viz.plannerTitle || "Контур планирования")
+  );
+  const plannerLines = (viz.plannerLines || []).map((line, index) => {
+    const item = makeVizText("div", "viz-live-line", line);
+    setVizDelay(item, 420 + index * 40);
+    plannerPanel.appendChild(item);
+    return item;
+  });
+  const nextPlanLine = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-continue is-collapsed",
+    viz.nextPlanLine || "План обновлён по observation summary."
+  );
+  setVizDelay(nextPlanLine, 740);
+  plannerPanel.appendChild(nextPlanLine);
+
+  const executorPanel = document.createElement("div");
+  executorPanel.className = "viz-column";
+  executorPanel.appendChild(
+    makeVizText("h4", "", viz.executorTitle || "Контур исполнения")
+  );
+  const executorLines = (viz.executorLines || []).map((line, index) => {
+    const item = makeVizText(
+      "div",
+      "viz-live-line viz-live-line-delegated is-collapsed",
+      line
+    );
+    setVizDelay(item, 500 + index * 40);
+    executorPanel.appendChild(item);
+    return item;
+  });
+
+  panels.appendChild(plannerPanel);
+  panels.appendChild(executorPanel);
+  loop.appendChild(panels);
+
+  const observationPanel = document.createElement("div");
+  observationPanel.className = "viz-column viz-artifact-panel";
+  observationPanel.appendChild(
+    makeVizText("h4", "", viz.observationTitle || "Observation summary")
+  );
+  const observationPending = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-pending",
+    viz.observationPending || "Observation summary ещё не собрана."
+  );
+  observationPanel.appendChild(observationPending);
+  const observationLines = (viz.observationLines || []).map((line, index) => {
+    const item = makeVizText(
+      "div",
+      "viz-live-line viz-live-line-approved is-collapsed",
+      line
+    );
+    setVizDelay(item, 670 + index * 45);
+    observationPanel.appendChild(item);
+    return item;
+  });
+  loop.appendChild(observationPanel);
+
+  root.appendChild(loop);
+  if (viz.note) {
+    const note = makeVizText("div", "viz-note", viz.note);
+    setVizDelay(note, 560);
+    root.appendChild(note);
+  }
+
+  root._plannerExecutorViz = {
+    status,
+    stageItems,
+    playButton,
+    stepButtons,
+    plannerFill,
+    plannerLoadValue,
+    plannerLoadCopy,
+    executorFill,
+    executorLoadValue,
+    executorLoadCopy,
+    plannerPanel,
+    executorPanel,
+    observationPanel,
+    executorLines,
+    observationPending,
+    observationLines,
+    nextPlanLine,
+    plannerLines
+  };
+  return root;
+}
+
+function renderToolContractViz(viz) {
+  const root = document.createElement("div");
+  root.className = "detail-viz";
+  const caption = makeVizText("p", "viz-caption", viz.caption);
+  setVizDelay(caption, 20);
+  root.appendChild(caption);
+
+  const loop = document.createElement("div");
+  loop.className = "viz-tool-contract-loop";
+
+  const controls = document.createElement("div");
+  controls.className = "viz-controls";
+  setVizDelay(controls, 50);
+
+  const playButton = document.createElement("button");
+  playButton.type = "button";
+  playButton.className = "viz-control-btn viz-play-btn";
+  playButton.textContent = "❚❚";
+  controls.appendChild(playButton);
+
+  const stepper = document.createElement("div");
+  stepper.className = "viz-stepper";
+  const stepButtons = (viz.stages || []).map((title, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "viz-step-btn";
+    button.textContent = `${index + 1}. ${title}`;
+    stepper.appendChild(button);
+    return button;
+  });
+  controls.appendChild(stepper);
+  loop.appendChild(controls);
+
+  const status = makeVizText("div", "viz-loop-status", "");
+  setVizDelay(status, 70);
+  loop.appendChild(status);
+
+  const stages = document.createElement("div");
+  stages.className = "viz-stage-row";
+  const stageItems = (viz.stages || []).map((title, index) => {
+    const item = document.createElement("div");
+    item.className = "viz-stage";
+    setVizDelay(item, 100 + index * 60);
+    item.appendChild(makeVizText("span", "viz-stage-step", `${index + 1}`));
+    item.appendChild(makeVizText("strong", "viz-stage-label", title));
+    stages.appendChild(item);
+    return item;
+  });
+  loop.appendChild(stages);
+
+  const requestCard = document.createElement("div");
+  requestCard.className = "viz-column";
+  requestCard.appendChild(
+    makeVizText("h4", "", viz.requestTitle || "Запрос к инструменту")
+  );
+  const requestLines = (viz.requestLines || []).map((line, index) => {
+    const toneClass = index === 0 ? "viz-live-line-request" : "viz-live-line-approved";
+    const item = makeVizText("div", `viz-live-line ${toneClass}`, line);
+    setVizDelay(item, 320 + index * 55);
+    requestCard.appendChild(item);
+    return item;
+  });
+  loop.appendChild(requestCard);
+
+  const panels = document.createElement("div");
+  panels.className = "viz-tool-contract-panels";
+
+  const noisyPanel = document.createElement("div");
+  noisyPanel.className = "viz-column";
+  noisyPanel.appendChild(makeVizText("h4", "", viz.noisyTitle || "Шумный ответ"));
+  const noisyPending = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-pending",
+    viz.noisyPending || "Шумный ответ ещё не пришёл."
+  );
+  noisyPanel.appendChild(noisyPending);
+  const noisyLines = (viz.noisyLines || []).map((line, index) => {
+    const item = makeVizText("div", "viz-live-line is-trace is-collapsed", line);
+    setVizDelay(item, 460 + index * 45);
+    noisyPanel.appendChild(item);
+    return item;
+  });
+
+  const structuredPanel = document.createElement("div");
+  structuredPanel.className = "viz-column";
+  structuredPanel.appendChild(
+    makeVizText("h4", "", viz.structuredTitle || "Структурный ответ")
+  );
+  const structuredPending = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-pending",
+    viz.structuredPending || "Структурный ответ ещё не собран."
+  );
+  structuredPanel.appendChild(structuredPending);
+  const structuredLines = (viz.structuredLines || []).map((line, index) => {
+    const item = makeVizText(
+      "div",
+      "viz-live-line viz-live-line-approved is-collapsed",
+      line
+    );
+    setVizDelay(item, 620 + index * 45);
+    structuredPanel.appendChild(item);
+    return item;
+  });
+
+  const windowPanel = document.createElement("div");
+  windowPanel.className = "viz-column";
+  windowPanel.appendChild(
+    makeVizText("h4", "", viz.windowTitle || "Активное окно")
+  );
+  const windowPending = makeVizText(
+    "div",
+    "viz-live-line viz-live-line-pending",
+    viz.windowPending || "Окно ещё получает сырой вывод."
+  );
+  windowPanel.appendChild(windowPending);
+  const windowLines = (viz.windowLines || []).map((line, index) => {
+    const item = makeVizText(
+      "div",
+      "viz-live-line viz-live-line-continue is-collapsed",
+      line
+    );
+    setVizDelay(item, 780 + index * 45);
+    windowPanel.appendChild(item);
+    return item;
+  });
+
+  panels.appendChild(noisyPanel);
+  panels.appendChild(structuredPanel);
+  panels.appendChild(windowPanel);
+  loop.appendChild(panels);
+
+  root.appendChild(loop);
+  if (viz.note) {
+    const note = makeVizText("div", "viz-note", viz.note);
+    setVizDelay(note, 520);
+    root.appendChild(note);
+  }
+  root._toolContractViz = {
+    status,
+    stageItems,
+    playButton,
+    stepButtons,
+    requestCard,
+    requestLines,
+    noisyPanel,
+    noisyPending,
+    noisyLines,
+    structuredPanel,
+    structuredPending,
+    structuredLines,
+    windowPanel,
+    windowPending,
+    windowLines
+  };
+  return root;
+}
+
 function renderStackViz(viz) {
   const root = document.createElement("div");
   root.className = "detail-viz";
@@ -2388,6 +2876,392 @@ function initToolLoadingViz(root, viz) {
   };
 }
 
+function initEventReplayViz(root, viz) {
+  const refs = root._eventReplayViz;
+  if (!refs) return null;
+
+  const timeouts = new Set();
+  let disposed = false;
+  let currentStageIndex = 0;
+  let isPlaying = true;
+  const stageDurations = viz.stageDurations || [2600, 3200, 3400, 3400];
+
+  const later = (fn, delay) => {
+    const id = setTimeout(() => {
+      timeouts.delete(id);
+      if (!disposed) fn();
+    }, delay);
+    timeouts.add(id);
+  };
+
+  const clearTimers = () => {
+    timeouts.forEach((id) => clearTimeout(id));
+    timeouts.clear();
+  };
+
+  const setStage = (index, statusText) => {
+    refs.status.textContent = statusText;
+    refs.stageItems.forEach((item, itemIndex) => {
+      item.classList.toggle("is-active", itemIndex === index);
+      item.classList.toggle("is-done", itemIndex < index);
+    });
+    refs.stepButtons.forEach((button, buttonIndex) => {
+      button.classList.toggle("is-active", buttonIndex === index);
+    });
+    currentStageIndex = index;
+  };
+
+  const updatePlayButton = () => {
+    refs.playButton.textContent = isPlaying ? "❚❚" : "▶";
+    refs.playButton.classList.toggle("is-paused", !isPlaying);
+  };
+
+  const setVisibility = (elements, visible) => {
+    elements.forEach((element) => {
+      element.classList.toggle("is-collapsed", !visible);
+    });
+  };
+
+  const applyStage = (index) => {
+    refs.logPanel.classList.remove("is-focused");
+    refs.slicePanel.classList.remove("is-focused");
+    refs.statePanel.classList.remove("is-focused");
+    refs.slicePending.classList.remove("is-collapsed");
+    refs.statePending.classList.remove("is-collapsed");
+    setVisibility(refs.sliceLines, false);
+    setVisibility(refs.stateLines, false);
+    refs.resumeLine.classList.add("is-collapsed");
+
+    if (index === 0) {
+      setStage(0, viz.statuses?.record || "");
+      refs.logPanel.classList.add("is-focused");
+      return;
+    }
+    if (index === 1) {
+      setStage(1, viz.statuses?.slice || "");
+      refs.logPanel.classList.add("is-focused");
+      refs.slicePanel.classList.add("is-focused");
+      refs.slicePending.classList.add("is-collapsed");
+      setVisibility(refs.sliceLines, true);
+      return;
+    }
+    if (index === 2) {
+      setStage(2, viz.statuses?.replay || "");
+      refs.slicePanel.classList.add("is-focused");
+      refs.statePanel.classList.add("is-focused");
+      refs.slicePending.classList.add("is-collapsed");
+      refs.statePending.classList.add("is-collapsed");
+      setVisibility(refs.sliceLines, true);
+      setVisibility(refs.stateLines, true);
+      return;
+    }
+
+    setStage(3, viz.statuses?.resume || "");
+    refs.statePanel.classList.add("is-focused");
+    refs.slicePending.classList.add("is-collapsed");
+    refs.statePending.classList.add("is-collapsed");
+    setVisibility(refs.sliceLines, true);
+    setVisibility(refs.stateLines, true);
+    refs.resumeLine.classList.remove("is-collapsed");
+  };
+
+  const scheduleNext = () => {
+    if (!isPlaying || disposed) return;
+    later(() => {
+      const nextStage = (currentStageIndex + 1) % refs.stageItems.length;
+      applyStage(nextStage);
+      scheduleNext();
+    }, stageDurations[currentStageIndex] || 3200);
+  };
+
+  refs.playButton.addEventListener("click", () => {
+    isPlaying = !isPlaying;
+    updatePlayButton();
+    clearTimers();
+    if (isPlaying) scheduleNext();
+  });
+
+  refs.stepButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      isPlaying = false;
+      updatePlayButton();
+      clearTimers();
+      applyStage(index);
+    });
+  });
+
+  updatePlayButton();
+  applyStage(0);
+  scheduleNext();
+
+  return () => {
+    disposed = true;
+    clearTimers();
+  };
+}
+
+function initPlannerExecutorViz(root, viz) {
+  const refs = root._plannerExecutorViz;
+  if (!refs) return null;
+
+  const timeouts = new Set();
+  let disposed = false;
+  let currentStageIndex = 0;
+  let isPlaying = true;
+  const stageDurations = viz.stageDurations || [2600, 3400, 3400, 3400];
+  const plannerLoadPercents = viz.plannerLoadPercents || [24, 24, 36, 38];
+  const executorLoadPercents = viz.executorLoadPercents || [12, 76, 42, 16];
+  const plannerLoadLabels = viz.plannerLoadLabels || [];
+  const executorLoadLabels = viz.executorLoadLabels || [];
+
+  const later = (fn, delay) => {
+    const id = setTimeout(() => {
+      timeouts.delete(id);
+      if (!disposed) fn();
+    }, delay);
+    timeouts.add(id);
+  };
+
+  const clearTimers = () => {
+    timeouts.forEach((id) => clearTimeout(id));
+    timeouts.clear();
+  };
+
+  const setStage = (index, statusText) => {
+    refs.status.textContent = statusText;
+    refs.stageItems.forEach((item, itemIndex) => {
+      item.classList.toggle("is-active", itemIndex === index);
+      item.classList.toggle("is-done", itemIndex < index);
+    });
+    refs.stepButtons.forEach((button, buttonIndex) => {
+      button.classList.toggle("is-active", buttonIndex === index);
+    });
+    currentStageIndex = index;
+  };
+
+  const updatePlayButton = () => {
+    refs.playButton.textContent = isPlaying ? "❚❚" : "▶";
+    refs.playButton.classList.toggle("is-paused", !isPlaying);
+  };
+
+  const setVisibility = (elements, visible) => {
+    elements.forEach((element) => {
+      element.classList.toggle("is-collapsed", !visible);
+    });
+  };
+
+  const setLoads = (index) => {
+    const plannerPercent = plannerLoadPercents[index] ?? plannerLoadPercents[0] ?? 24;
+    const executorPercent = executorLoadPercents[index] ?? executorLoadPercents[0] ?? 12;
+    refs.plannerFill.style.width = `${plannerPercent}%`;
+    refs.plannerFill.dataset.state = plannerPercent > 55 ? "high" : "safe";
+    refs.plannerLoadValue.textContent = `${plannerPercent}% окна`;
+    refs.plannerLoadCopy.textContent = plannerLoadLabels[index] || "";
+    refs.executorFill.style.width = `${executorPercent}%`;
+    refs.executorFill.dataset.state = executorPercent > 55 ? "high" : "safe";
+    refs.executorLoadValue.textContent = `${executorPercent}% окна`;
+    refs.executorLoadCopy.textContent = executorLoadLabels[index] || "";
+  };
+
+  const applyStage = (index) => {
+    refs.plannerPanel.classList.remove("is-focused");
+    refs.executorPanel.classList.remove("is-focused");
+    refs.observationPanel.classList.remove("is-focused");
+    setVisibility(refs.executorLines, false);
+    setVisibility(refs.observationLines, false);
+    refs.observationPending.classList.remove("is-collapsed");
+    refs.nextPlanLine.classList.add("is-collapsed");
+    setLoads(index);
+
+    if (index === 0) {
+      setStage(0, viz.statuses?.plan || "");
+      refs.plannerPanel.classList.add("is-focused");
+      return;
+    }
+    if (index === 1) {
+      setStage(1, viz.statuses?.execute || "");
+      refs.plannerPanel.classList.add("is-focused");
+      refs.executorPanel.classList.add("is-focused");
+      setVisibility(refs.executorLines, true);
+      return;
+    }
+    if (index === 2) {
+      setStage(2, viz.statuses?.observe || "");
+      refs.executorPanel.classList.add("is-focused");
+      refs.observationPanel.classList.add("is-focused");
+      setVisibility(refs.executorLines, true);
+      refs.observationPending.classList.add("is-collapsed");
+      setVisibility(refs.observationLines, true);
+      return;
+    }
+
+    setStage(3, viz.statuses?.replan || "");
+    refs.plannerPanel.classList.add("is-focused");
+    refs.observationPanel.classList.add("is-focused");
+    refs.observationPending.classList.add("is-collapsed");
+    setVisibility(refs.observationLines, true);
+    refs.nextPlanLine.classList.remove("is-collapsed");
+  };
+
+  const scheduleNext = () => {
+    if (!isPlaying || disposed) return;
+    later(() => {
+      const nextStage = (currentStageIndex + 1) % refs.stageItems.length;
+      applyStage(nextStage);
+      scheduleNext();
+    }, stageDurations[currentStageIndex] || 3200);
+  };
+
+  refs.playButton.addEventListener("click", () => {
+    isPlaying = !isPlaying;
+    updatePlayButton();
+    clearTimers();
+    if (isPlaying) scheduleNext();
+  });
+
+  refs.stepButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      isPlaying = false;
+      updatePlayButton();
+      clearTimers();
+      applyStage(index);
+    });
+  });
+
+  updatePlayButton();
+  applyStage(0);
+  scheduleNext();
+
+  return () => {
+    disposed = true;
+    clearTimers();
+  };
+}
+
+function initToolContractViz(root, viz) {
+  const refs = root._toolContractViz;
+  if (!refs) return null;
+
+  const timeouts = new Set();
+  let disposed = false;
+  let currentStageIndex = 0;
+  let isPlaying = true;
+  const stageDurations = viz.stageDurations || [2500, 3200, 3400, 3400];
+
+  const later = (fn, delay) => {
+    const id = setTimeout(() => {
+      timeouts.delete(id);
+      if (!disposed) fn();
+    }, delay);
+    timeouts.add(id);
+  };
+
+  const clearTimers = () => {
+    timeouts.forEach((id) => clearTimeout(id));
+    timeouts.clear();
+  };
+
+  const setStage = (index, statusText) => {
+    refs.status.textContent = statusText;
+    refs.stageItems.forEach((item, itemIndex) => {
+      item.classList.toggle("is-active", itemIndex === index);
+      item.classList.toggle("is-done", itemIndex < index);
+    });
+    refs.stepButtons.forEach((button, buttonIndex) => {
+      button.classList.toggle("is-active", buttonIndex === index);
+    });
+    currentStageIndex = index;
+  };
+
+  const updatePlayButton = () => {
+    refs.playButton.textContent = isPlaying ? "❚❚" : "▶";
+    refs.playButton.classList.toggle("is-paused", !isPlaying);
+  };
+
+  const setVisibility = (elements, visible) => {
+    elements.forEach((element) => {
+      element.classList.toggle("is-collapsed", !visible);
+    });
+  };
+
+  const applyStage = (index) => {
+    refs.requestCard.classList.remove("is-focused");
+    refs.noisyPanel.classList.remove("is-focused");
+    refs.structuredPanel.classList.remove("is-focused");
+    refs.windowPanel.classList.remove("is-focused");
+    refs.noisyPending.classList.remove("is-collapsed");
+    refs.structuredPending.classList.remove("is-collapsed");
+    refs.windowPending.classList.remove("is-collapsed");
+    setVisibility(refs.noisyLines, false);
+    setVisibility(refs.structuredLines, false);
+    setVisibility(refs.windowLines, false);
+
+    if (index === 0) {
+      setStage(0, viz.statuses?.loose || "");
+      refs.requestCard.classList.add("is-focused");
+      return;
+    }
+    if (index === 1) {
+      setStage(1, viz.statuses?.noisy || "");
+      refs.requestCard.classList.add("is-focused");
+      refs.noisyPanel.classList.add("is-focused");
+      refs.noisyPending.classList.add("is-collapsed");
+      setVisibility(refs.noisyLines, true);
+      return;
+    }
+    if (index === 2) {
+      setStage(2, viz.statuses?.structured || "");
+      refs.requestCard.classList.add("is-focused");
+      refs.structuredPanel.classList.add("is-focused");
+      refs.structuredPending.classList.add("is-collapsed");
+      setVisibility(refs.structuredLines, true);
+      return;
+    }
+
+    setStage(3, viz.statuses?.focused || "");
+    refs.structuredPanel.classList.add("is-focused");
+    refs.windowPanel.classList.add("is-focused");
+    refs.structuredPending.classList.add("is-collapsed");
+    refs.windowPending.classList.add("is-collapsed");
+    setVisibility(refs.structuredLines, true);
+    setVisibility(refs.windowLines, true);
+  };
+
+  const scheduleNext = () => {
+    if (!isPlaying || disposed) return;
+    later(() => {
+      const nextStage = (currentStageIndex + 1) % refs.stageItems.length;
+      applyStage(nextStage);
+      scheduleNext();
+    }, stageDurations[currentStageIndex] || 3200);
+  };
+
+  refs.playButton.addEventListener("click", () => {
+    isPlaying = !isPlaying;
+    updatePlayButton();
+    clearTimers();
+    if (isPlaying) scheduleNext();
+  });
+
+  refs.stepButtons.forEach((button, index) => {
+    button.addEventListener("click", () => {
+      isPlaying = false;
+      updatePlayButton();
+      clearTimers();
+      applyStage(index);
+    });
+  });
+
+  updatePlayButton();
+  applyStage(0);
+  scheduleNext();
+
+  return () => {
+    disposed = true;
+    clearTimers();
+  };
+}
+
 function renderViz(node) {
   if (!node.viz) return null;
 
@@ -2454,6 +3328,33 @@ function renderViz(node) {
       element,
       init() {
         return initToolLoadingViz(element, node.viz);
+      }
+    };
+  }
+  if (node.viz.type === "event-replay") {
+    const element = renderEventReplayViz(node.viz);
+    return {
+      element,
+      init() {
+        return initEventReplayViz(element, node.viz);
+      }
+    };
+  }
+  if (node.viz.type === "planner-executor") {
+    const element = renderPlannerExecutorViz(node.viz);
+    return {
+      element,
+      init() {
+        return initPlannerExecutorViz(element, node.viz);
+      }
+    };
+  }
+  if (node.viz.type === "tool-contract") {
+    const element = renderToolContractViz(node.viz);
+    return {
+      element,
+      init() {
+        return initToolContractViz(element, node.viz);
       }
     };
   }

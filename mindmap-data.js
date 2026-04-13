@@ -24,8 +24,8 @@ window.MINDMAP_DATA = {
     "anthropic-agents": {
       title: "Building Effective AI Agents",
       publisher: "Anthropic",
-      kind: "Architecture guide",
-      url: "https://resources.anthropic.com/building-effective-ai-agents"
+      kind: "eBook PDF",
+      url: "https://resources.anthropic.com/hubfs/Building%20Effective%20AI%20Agents-%20Architecture%20Patterns%20and%20Implementation%20Frameworks.pdf?hsLang=en"
     },
     "anthropic-multi-agent": {
       title: "Anthropic: How we built our multi-agent research system",
@@ -69,11 +69,59 @@ window.MINDMAP_DATA = {
       kind: "Project",
       url: "https://www.microsoft.com/en-us/research/project/graphrag/"
     },
+    "graphrag-index-overview": {
+      title: "GraphRAG: Indexing overview",
+      publisher: "Microsoft",
+      kind: "Official docs",
+      url: "https://microsoft.github.io/graphrag/index/overview/"
+    },
+    "graphrag-query-overview": {
+      title: "GraphRAG: Query engine overview",
+      publisher: "Microsoft",
+      kind: "Official docs",
+      url: "https://microsoft.github.io/graphrag/query/overview/"
+    },
     "langchain-context": {
       title: "LangChain Docs: Context engineering in agents",
       publisher: "LangChain",
       kind: "Docs",
       url: "https://docs.langchain.com/oss/python/langchain/context-engineering"
+    },
+    "langgraph-persistence": {
+      title: "LangGraph: Persistence",
+      publisher: "LangChain",
+      kind: "Official docs",
+      url: "https://docs.langchain.com/oss/python/langgraph/persistence"
+    },
+    "langgraph-durable-execution": {
+      title: "LangGraph: Durable execution",
+      publisher: "LangChain",
+      kind: "Official docs",
+      url: "https://docs.langchain.com/oss/python/langgraph/durable-execution"
+    },
+    "langgraph-time-travel": {
+      title: "LangGraph / LangSmith: Time travel using the server API",
+      publisher: "LangChain",
+      kind: "Official docs",
+      url: "https://docs.langchain.com/langsmith/human-in-the-loop-time-travel"
+    },
+    "langgraph-memory": {
+      title: "LangGraph: Memory overview",
+      publisher: "LangChain",
+      kind: "Official docs",
+      url: "https://docs.langchain.com/oss/python/langgraph/memory"
+    },
+    "langgraph-observability": {
+      title: "LangGraph: Observability",
+      publisher: "LangChain",
+      kind: "Official docs",
+      url: "https://docs.langchain.com/oss/python/langgraph/observability"
+    },
+    "langsmith-evaluation": {
+      title: "LangSmith Evaluation",
+      publisher: "LangChain",
+      kind: "Official docs",
+      url: "https://docs.langchain.com/langsmith/evaluation"
     },
     "swe-bench": {
       title: "SWE-bench",
@@ -116,6 +164,42 @@ window.MINDMAP_DATA = {
       publisher: "Claude",
       kind: "Official docs",
       url: "https://code.claude.com/docs/en/context-window"
+    },
+    "claude-code-skills": {
+      title: "Claude Code: Extend Claude with skills",
+      publisher: "Claude",
+      kind: "Official docs",
+      url: "https://code.claude.com/docs/en/skills"
+    },
+    "claude-code-hooks": {
+      title: "Claude Code: Hooks reference",
+      publisher: "Claude",
+      kind: "Official docs",
+      url: "https://code.claude.com/docs/en/hooks"
+    },
+    "claude-code-commands": {
+      title: "Claude Code: Commands reference",
+      publisher: "Claude",
+      kind: "Official docs",
+      url: "https://code.claude.com/docs/en/commands"
+    },
+    "claude-code-subagents": {
+      title: "Claude Code: Create custom subagents",
+      publisher: "Claude",
+      kind: "Official docs",
+      url: "https://code.claude.com/docs/en/sub-agents"
+    },
+    "claude-code-memory": {
+      title: "Claude Code: How Claude remembers your project",
+      publisher: "Claude",
+      kind: "Official docs",
+      url: "https://code.claude.com/docs/en/memory"
+    },
+    "claude-code-directory": {
+      title: "Claude Code: Explore the .claude directory",
+      publisher: "Claude",
+      kind: "Official docs",
+      url: "https://code.claude.com/docs/en/claude-directory"
     },
     "gemini-cli": {
       title: "Gemini CLI documentation",
@@ -364,7 +448,12 @@ window.MINDMAP_DATA = {
         "Для кода lexical search часто даёт более надёжную опору, чем чистый embedding search.",
         "Лучшие системы смешивают select-before-read и read-before-decide."
       ],
-      sourceIds: ["react", "toolformer", "graphrag", "langchain-context"],
+      sourceIds: [
+        "langchain-context",
+        "graphrag-query-overview",
+        "graphrag-index-overview",
+        "anthropic-tools"
+      ],
       children: [
         {
           id: "lexical-search",
@@ -380,7 +469,7 @@ window.MINDMAP_DATA = {
             "Особенно полезен для API names, error strings и config keys.",
             "Дешёвый и объяснимый базовый этап перед более дорогим retrieval."
           ],
-          sourceIds: ["react", "langchain-context"]
+          sourceIds: ["langchain-context", "anthropic-tools"]
         },
         {
           id: "semantic-search",
@@ -396,7 +485,7 @@ window.MINDMAP_DATA = {
             "Чистый семантический поиск без reranking часто приносит красивый, но бесполезный шум.",
             "Для кода гибрид почти всегда устойчивее, чем один механизм."
           ],
-          sourceIds: ["graphrag", "langchain-context"]
+          sourceIds: ["graphrag-query-overview", "langchain-context"]
         },
         {
           id: "repo-map",
@@ -412,7 +501,7 @@ window.MINDMAP_DATA = {
             "Индекс уменьшает число случайных чтений.",
             "Структурная карта полезна и для retrieval, и для compaction."
           ],
-          sourceIds: ["graphrag", "anthropic-agents"]
+          sourceIds: ["graphrag-index-overview", "graphrag-query-overview"]
         },
         {
           id: "tool-discovery",
@@ -428,7 +517,7 @@ window.MINDMAP_DATA = {
             "Хороший runtime оптимизирует и retrieval path, и token path.",
             "Tool discovery становится частью контекстной политики."
           ],
-          sourceIds: ["toolformer", "mcp-intro", "anthropic-context"]
+          sourceIds: ["anthropic-tools", "mcp-intro", "langchain-context"]
         }
       ]
     },
@@ -701,7 +790,7 @@ window.MINDMAP_DATA = {
             returnLine:
               "Если нужен контекст по ветке тестов, агент точечно раскрывает соответствующую промежуточную сводку и только нужную локальную заметку."
           },
-          sourceIds: ["graphrag", "anthropic-agents"]
+          sourceIds: ["graphrag", "anthropic-multi-agent"]
         },
         {
           id: "verification",
@@ -781,7 +870,7 @@ window.MINDMAP_DATA = {
             "Отдельный сжиматель должен знать, что считается критическим состоянием.",
             "Здесь лежат и исследовательские подходы вроде ACON, и прикладные фоновые схемы Compaction в реальных CLI-агентах."
           ],
-          sourceIds: ["anthropic-agents", "langchain-context", "acon"],
+          sourceIds: ["acon", "active-context-compression", "anthropic-context-management"],
           children: [
             {
               id: "compressor-acon",
@@ -829,7 +918,12 @@ window.MINDMAP_DATA = {
                 "Исследовательские и прикладные решения различаются формой, но управляют одной и той же проблемой переполнения окна.",
                 "Сравнивать стоит не названия фич, а то, как именно система сохраняет рабочее состояние."
               ],
-              sourceIds: ["forgecode-compaction", "claude-code-overview", "gemini-cli", "codex-cli"]
+              sourceIds: [
+                "forgecode-compaction",
+                "claude-code-context-window",
+                "gemini-cli-checkpointing",
+                "codex-cli"
+              ]
             }
           ]
         }
@@ -892,19 +986,69 @@ window.MINDMAP_DATA = {
         },
         {
           id: "event-log",
-          title: "Журнал событий и воспроизведение",
+          title: "Журнал событий, checkpoints и воспроизведение",
           tags: ["memory", "events"],
           summary:
-            "История действий как поток событий, который можно выборочно перечитывать, а не только целиком пересылать модели.",
+            "Состояние долгого запуска можно хранить как поток событий и checkpoints, а затем выборочно пересобирать нужный срез для продолжения работы.",
           why:
-            "Это делает long-horizon runs более воспроизводимыми и пригодными к отладке.",
+            "Это делает long-horizon runs воспроизводимыми: продолжение идёт не из полного чата, а из сохранённой истории и точки восстановления.",
           example:
-            "Сохранять calls, результаты, timestamps и checkpoints, а потом доставать только нужный срез.",
+            "Сохранять чтения, вызовы инструментов, результаты проверок и checkpoints, а потом восстанавливать только нужный отрезок после последней стабильной точки.",
           insights: [
             "Event log полезен и для дебага, и для evals.",
-            "Replay-системы лучше масштабируются, чем бесконечный чат."
+            "Replay-системы лучше масштабируются, чем бесконечный чат.",
+            "Срез часто строится гибридно: сначала его сужают правилами по checkpoint или scope, а затем при необходимости LLM собирает рабочее состояние."
           ],
-          sourceIds: ["anthropic-context-management", "anthropic-agents"]
+          viz: {
+            type: "event-replay",
+            title: "Как журнал событий превращается в рабочий срез",
+            caption:
+              "Журнал событий не должен целиком возвращаться в активное окно. Сначала накапливается трасса, затем из неё выбирается нужный отрезок, а уже он пересобирается в текущее рабочее состояние.",
+            stages: ["Запись", "Срез", "Replay", "Возврат в работу"],
+            stageDurations: [2600, 3200, 3400, 3400],
+            statuses: {
+              record:
+                "Во время длинного запуска система сохраняет отдельные события: чтения, вызовы инструментов, проверки, заметки и checkpoints.",
+              slice:
+                "Когда нужно продолжить работу, harness не возвращает весь журнал, а выбирает короткий отрезок вокруг нужной гипотезы или точки восстановления.",
+              replay:
+                "Из выбранных событий пересобирается компактное состояние: что уже подтверждено, где была ошибка и какие файлы теперь важны.",
+              resume:
+                "В активное окно попадает только срез и восстановленное состояние, а полный журнал остаётся внешним артефактом для отладки и evals."
+            },
+            logTitle: "Журнал событий",
+            logLines: [
+              "12:03 read_file src/cache.ts",
+              "12:04 search \"rename\" в src/",
+              "12:05 test targeted/cache-rename.spec.ts",
+              "12:07 checkpoint before patch",
+              "12:09 patch cache key rebuild",
+              "12:11 test failed: stale key after rename"
+            ],
+            sliceTitle: "Выбранный срез",
+            slicePending:
+              "Срез ещё не построен: пока у нас есть только сырая история шагов и checkpoints.",
+            sliceLines: [
+              "checkpoint before patch",
+              "patch cache key rebuild",
+              "test failed: stale key after rename"
+            ],
+            stateTitle: "Cостояние после восстановления",
+            statePending:
+              "Рабочее состояние ещё не пересобрано: без replay пришлось бы заново перечитывать длинный след и руками искать точку продолжения.",
+            stateLines: [
+              "Подтверждено: баг связан с rename и stale key",
+              "Следующий шаг: проверить invalidation path после rename",
+              "Нужны только 3 файла: cache.ts, rename.ts, targeted spec"
+            ],
+            resumeLine:
+              "Активное окно получает только итоговый срез и продолжает работу без полного журнала."
+          },
+          sourceIds: [
+            "langgraph-persistence",
+            "langgraph-durable-execution",
+            "langgraph-time-travel"
+          ]
         },
         {
           id: "files-as-memory",
@@ -920,7 +1064,7 @@ window.MINDMAP_DATA = {
             "Это не самый эффектный, но очень инженерный способ сохранить состояние.",
             "Особенно удобен в задачах по коду."
           ],
-          sourceIds: ["anthropic-context-management", "langchain-context"]
+          sourceIds: ["langgraph-memory", "langchain-context"]
         }
       ]
     },
@@ -1006,7 +1150,8 @@ window.MINDMAP_DATA = {
             "Отдельный research subagent возвращает summary и список файлов, не таща весь trail поиска в основной поток.",
           insights: [
             "Сабагенты эффективны, когда write scopes и цели чётко разделены.",
-            "Возврат summary вместо полной истории часто даёт лучший signal-to-noise."
+            "Возврат summary вместо полной истории часто даёт лучший signal-to-noise.",
+            "Навык и сабагент решают разные задачи: навык переиспользует процедуру в текущем окне, сабагент выносит подзадачу в отдельное окно."
           ],
           viz: {
             type: "subagent-handoff",
@@ -1102,7 +1247,7 @@ window.MINDMAP_DATA = {
             note:
               "Если сабагент возвращает полную историю вместо компактного результата, он перестаёт разгружать основной контекст."
           },
-          sourceIds: ["anthropic-agents", "anthropic-context"]
+          sourceIds: ["anthropic-agents", "anthropic-multi-agent", "claude-code-skills", "forgecode-skills"]
         },
         {
           id: "planner-executor",
@@ -1118,7 +1263,64 @@ window.MINDMAP_DATA = {
             "Подход полезен при сложных, но проверяемых задачах.",
             "Он же помогает делать cleaner eval traces."
           ],
-          sourceIds: ["react", "anthropic-agents"]
+          viz: {
+            type: "planner-executor",
+            title: "Как разнести план и операционный след",
+            caption:
+              "Смысл этого разделения не в новых ролях ради ролей. Планирующий контур держит короткую абстракцию задачи, а исполнительный контур берёт на себя длинный операционный след: чтения файлов, команды, проверки и промежуточные наблюдения.",
+            stages: ["План", "Исполнение", "Наблюдение", "Уточнение плана"],
+            stageDurations: [2600, 3400, 3400, 3400],
+            statuses: {
+              plan:
+                "Планирующий контур формулирует короткий маршрут: что нужно подтвердить, где искать причину и каким будет критерий успеха.",
+              execute:
+                "Исполнительный контур работает с файлами и инструментами, но этот шум не должен полностью перетекать назад в план.",
+              observe:
+                "После проверки исполнитель возвращает observation summary: факт, найденный участок кода и короткий список артефактов.",
+              replan:
+                "План обновляется по результату наблюдения и остаётся компактным: следующий шаг задаётся уже без полного tool trail."
+            },
+            plannerTitle: "Контур планирования",
+            executorTitle: "Контур исполнения",
+            observationTitle: "Observation summary",
+            plannerLoadPercents: [24, 24, 36, 38],
+            executorLoadPercents: [12, 76, 42, 16],
+            plannerLoadLabels: [
+              "Короткая карта шагов и критерий успеха",
+              "План не должен обрастать всей операционной историей",
+              "Назад приходит только observation summary",
+              "Уточнённый план остаётся компактным"
+            ],
+            executorLoadLabels: [
+              "Исполнитель ещё почти пуст",
+              "Основная операционная нагрузка живёт здесь",
+              "После наблюдения длинный след можно схлопнуть",
+              "Контур снова готов к следующему шагу"
+            ],
+            plannerLines: [
+              "Цель: понять, почему stale key переживает rename",
+              "Шаг 1: локализовать место rebuild ключа",
+              "Шаг 2: проверить invalidation после rename"
+            ],
+            executorLines: [
+              "rg \"cache key\" src/",
+              "read_file src/cache.ts и src/rename.ts",
+              "run targeted/cache-rename.spec.ts",
+              "diff around key rebuild path"
+            ],
+            observationPending:
+              "Observation ещё нет: исполнительный контур пока только накапливает рабочий след.",
+            observationLines: [
+              "Найдено: rebuild пропускается после rename в rename.ts",
+              "Подтверждено targeted test на одном сценарии",
+              "Для следующего шага нужны 2 файла и 1 участок diff"
+            ],
+            nextPlanLine:
+              "Следующий план: править path rebuild после rename и прогнать targeted + regression tests.",
+            note:
+              "Если planner получает назад весь shell trail и все чтения файлов, разделение перестаёт разгружать контекст."
+          },
+          sourceIds: ["react", "anthropic-agents", "anthropic-multi-agent"]
         },
         {
           id: "routing-sandbox",
@@ -1256,7 +1458,13 @@ window.MINDMAP_DATA = {
                 "Здесь особенно хорошо видны раздельные слои инструкций, памяти и инструментов.",
                 "Расширяемость через hooks, commands и MCP делает harness самостоятельным объектом дизайна."
               ],
-              sourceIds: ["claude-code-overview", "claude-code-context-window", "claude-code-mcp"],
+              sourceIds: [
+                "claude-code-overview",
+                "claude-code-context-window",
+                "claude-code-directory",
+                "claude-code-skills",
+                "claude-code-mcp"
+              ],
               children: [
                 {
                   id: "claude-instructions-memory",
@@ -1272,7 +1480,31 @@ window.MINDMAP_DATA = {
                     "Файл правил и память здесь не смешаны в один безымянный prompt.",
                     "Прозрачность происхождения контекста помогает отладке и handoff."
                   ],
-                  sourceIds: ["claude-code-overview", "claude-code-context-window"]
+                  sourceIds: [
+                    "claude-code-memory",
+                    "claude-code-context-window",
+                    "claude-code-directory"
+                  ]
+                },
+                {
+                  id: "claude-skills-runtime",
+                  title: "Skills как адресуемые процедуры",
+                  tags: ["runtime", "examples", "memory"],
+                  summary:
+                    "В Claude Code навыки живут как отдельные модули с `SKILL.md`: это не просто длинные заметки, а переиспользуемые процедуры, которые можно держать рядом с проектом и загружать по мере надобности.",
+                  why:
+                    "Это позволяет вынести типовые сценарии из основной беседы и не таскать их тело в активном окне на каждом шаге.",
+                  example:
+                    "Проект кладёт skill в `.claude/skills`, а агент поднимает его только когда нужен конкретный рабочий сценарий, а не весь набор навыков сразу.",
+                  insights: [
+                    "Навык отличается от `CLAUDE.md`: это не фоновые правила проекта, а адресуемая процедура для отдельного типа работы.",
+                    "Навык отличается и от сабагента: он переиспользует текущее окно, а не открывает новый изолированный контур."
+                  ],
+                  sourceIds: [
+                    "claude-code-skills",
+                    "claude-code-commands",
+                    "claude-code-directory"
+                  ]
                 },
                 {
                   id: "claude-context-lifecycle",
@@ -1288,11 +1520,15 @@ window.MINDMAP_DATA = {
                     "Порядок «очистить tool outputs -> компактить историю» сам по себе является контекстной политикой.",
                     "Такой подход ближе к управлению сессией, чем к обычной суммаризации переписки."
                   ],
-                  sourceIds: ["claude-code-context-window"]
+                  sourceIds: [
+                    "claude-code-context-window",
+                    "claude-code-commands",
+                    "anthropic-context-management"
+                  ]
                 },
                 {
                   id: "claude-extensions-isolation",
-                  title: "Команды, hooks, subagents, MCP",
+                  title: "Команды, hooks, subagents и MCP",
                   tags: ["runtime", "examples", "mcp"],
                   summary:
                     "Claude Code расширяется несколькими разными путями: slash-команды задают готовые сценарии, hooks реагируют на события, subagents изолируют подзадачи, а MCP подключает внешний мир.",
@@ -1304,7 +1540,12 @@ window.MINDMAP_DATA = {
                     "Разные механизмы расширения хорошо разводят разные типы контекста и действий.",
                     "Изоляция подзадач через subagents уменьшает шум в основном окне."
                   ],
-                  sourceIds: ["claude-code-overview", "claude-code-mcp"]
+                  sourceIds: [
+                    "claude-code-commands",
+                    "claude-code-hooks",
+                    "claude-code-subagents",
+                    "claude-code-mcp"
+                  ]
                 }
               ]
             },
@@ -1723,7 +1964,7 @@ window.MINDMAP_DATA = {
             ],
             loadPercents: [92, 92, 34, 34]
           },
-          sourceIds: ["mcp-intro", "anthropic-context"]
+          sourceIds: ["mcp-intro", "anthropic-tools", "anthropic-context"]
         },
         {
           id: "tool-schemas",
@@ -1739,7 +1980,56 @@ window.MINDMAP_DATA = {
             "Хороший schema дизайн уменьшает downstream pruning.",
             "Tool result format нужно проектировать под дальнейшую agent работу."
           ],
-          sourceIds: ["mcp-spec", "toolformer"]
+          viz: {
+            type: "tool-contract",
+            title: "Как контракт инструмента убирает шум раньше Compaction",
+            caption:
+              "Часто лучший способ улучшить контекст не в том, чтобы потом резать шумный вывод, а в том, чтобы изначально заставить инструмент возвращать нужную форму результата. Хороший контракт экономит токены ещё до попадания ответа в активное окно.",
+            stages: ["Грубый контракт", "Шумный ответ", "Структурный контракт", "Рабочий результат"],
+            stageDurations: [2500, 3200, 3400, 3400],
+            statuses: {
+              loose:
+                "Слишком общий контракт приводит к тому, что инструмент возвращает весь файл, служебный мусор и лишние поля, хотя агенту нужен только узкий фрагмент.",
+              noisy:
+                "Шумный результат быстро раздувает активное окно и затем требует отдельного pruning или Compaction.",
+              structured:
+                "Если контракт заранее просит только релевантные секции, offsets, сигнатуры и короткую сводку, вывод становится пригодным для следующего шага без лишней очистки.",
+              focused:
+                "В рабочее окно попадает уже адресуемый результат: точные участки, короткая метаинформация и понятный следующий шаг."
+            },
+            requestTitle: "Запрос к инструменту",
+            requestLines: [
+              "Плохо: read_file целиком по пути",
+              "Хорошо: найти секции вокруг match + вернуть offsets и 1-line summary"
+            ],
+            noisyTitle: "Шумный ответ",
+            noisyPending:
+              "Шумный вывод ещё не пришёл: пока не видно, насколько неудачный контракт раздует активное окно.",
+            noisyLines: [
+              "1200 строк файла целиком",
+              "Служебные поля, которые не влияют на следующий шаг",
+              "Нет указания, какой участок реально важен"
+            ],
+            structuredTitle: "Структурный ответ",
+            structuredPending:
+              "Хороший результат ещё не собран: контракт пока не ограничил форму ответа.",
+            structuredLines: [
+              "2 найденные секции вокруг match",
+              "Offsets и номера строк для точного перехода",
+              "Короткая сводка: invalidation пропускается после rename"
+            ],
+            windowTitle: "Что попадает в активное окно",
+            windowPending:
+              "Пока контракт не переписан, окно переполняется сырым выводом.",
+            windowLines: [
+              "Не нужен отдельный pruning сразу после вызова",
+              "Агент видит только нужные секции и может продолжать reasoning",
+              "Следующий tool call формируется точнее, потому что ответ адресуемый"
+            ],
+            note:
+              "Сильный контракт инструмента часто полезнее ещё одной сводки поверх плохого вывода."
+          },
+          sourceIds: ["anthropic-tools", "mcp-spec", "toolformer"]
         },
         {
           id: "tool-safety",
@@ -1776,7 +2066,7 @@ window.MINDMAP_DATA = {
         "Нужны и сквозные бенчмарки, и точечные проверки внутри контура.",
         "Сравнение 'агент против агента' без разбора контекстной политики часто вводит в заблуждение."
       ],
-      sourceIds: ["swe-bench", "terminal-bench", "anthropic-context"],
+      sourceIds: ["langsmith-evaluation", "swe-bench", "terminal-bench"],
       children: [
         {
           id: "outcome-metrics",
@@ -1792,7 +2082,7 @@ window.MINDMAP_DATA = {
             "Нужно считать результат вместе со стоимостью и временем.",
             "Проверенные бенчмарки полезнее сырых лидербордов."
           ],
-          sourceIds: ["swe-bench", "terminal-bench"]
+          sourceIds: ["langsmith-evaluation", "swe-bench", "terminal-bench"]
         },
         {
           id: "process-metrics",
@@ -1808,7 +2098,11 @@ window.MINDMAP_DATA = {
             "Процессные метрики нужны для настройки Harness.",
             "Они же помогают понять, что переносить в модель, а что оставлять в системном слое."
           ],
-          sourceIds: ["anthropic-context", "langchain-context"]
+          sourceIds: [
+            "langgraph-observability",
+            "langsmith-evaluation",
+            "langchain-context"
+          ]
         },
         {
           id: "benchmarks",
@@ -1840,7 +2134,7 @@ window.MINDMAP_DATA = {
             "Сначала фиксируй переменные, потом сравнивай.",
             "Сильная оценка сочетает лидерборд и разбор трасс."
           ],
-          sourceIds: ["anthropic-context", "swe-bench", "terminal-bench"]
+          sourceIds: ["langsmith-evaluation", "swe-bench", "terminal-bench"]
         }
       ]
     }
