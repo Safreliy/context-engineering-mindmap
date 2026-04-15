@@ -33,12 +33,18 @@
               <button class="chip" data-filter="runtime">Runtime</button>
               <button class="chip" data-filter="evaluation">Evaluation</button>
             </div>
+            <div class="toolbar-row mobile-toolbar-row">
+              <button class="chip mobile-detail-toggle" id="mobile-detail-open" type="button">Детали</button>
+            </div>
           </div>
         </div>
 
         <div class="stage-overlay detail-dock" id="detail-dock">
           <div class="detail-header">
-            <div class="breadcrumb" id="breadcrumb"></div>
+            <div class="detail-header-row">
+              <div class="breadcrumb" id="breadcrumb"></div>
+              <button class="detail-close" id="detail-close" type="button" aria-label="Скрыть детали">✕</button>
+            </div>
             <h2 class="detail-title" id="detail-title"></h2>
             <p class="detail-subtitle" id="detail-subtitle"></p>
           </div>

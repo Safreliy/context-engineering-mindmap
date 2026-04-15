@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Эволюция контекстной инженерии для ИИ-агентов</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #08111d;
+    --bg-2: #0f1c2b;
+    --glass: rgba(13, 28, 43, 0.72);
+    --glass-2: rgba(16, 38, 58, 0.82);
+    --line: rgba(151, 201, 255, 0.14);
+    --ink: #eef5ff;
+    --muted: #9bb0c5;
+    --accent: #7dd3fc;
+    --accent-2: #5eead4;
+    --accent-3: #c4b5fd;
+    --warn: #fda4af;
+    --good: #86efac;
+    --mono: "IBM Plex Mono", monospace;
+    --sans: "IBM Plex Sans", sans-serif;
+    --shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background:
+      radial-gradient(circle at 18% 18%, rgba(94, 234, 212, 0.12), transparent 22%),
+      radial-gradient(circle at 82% 22%, rgba(125, 211, 252, 0.14), transparent 24%),
+      radial-gradient(circle at 76% 82%, rgba(196, 181, 253, 0.1), transparent 20%),
+      linear-gradient(180deg, #07101a 0%, #0c1725 48%, #07101a 100%);
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(151, 201, 255, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(151, 201, 255, 0.03) 1px, transparent 1px);
+    background-size: 34px 34px;
+    mask-image: radial-gradient(circle at center, black 34%, transparent 100%);
+  }
+
+  .deck { position: relative; width: 100%; height: 100%; }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 52px 72px 72px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 22px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(64px);
+    transition: opacity .45s ease, transform .45s ease;
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+  .slide.exit-left { opacity: 0; transform: translateX(-64px); }
+  .slide.exit-right { opacity: 0; transform: translateX(64px); }
+  .slide.enter-left { transform: translateX(-64px); }
+
+  .slide > .anim {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .slide.active > .anim { opacity: 1; transform: translateY(0); }
+  .slide.active > .anim:nth-child(1) { transition-delay: .05s; }
+  .slide.active > .anim:nth-child(2) { transition-delay: .14s; }
+  .slide.active > .anim:nth-child(3) { transition-delay: .24s; }
+  .slide.active > .anim:nth-child(4) { transition-delay: .34s; }
+  .slide.active > .anim:nth-child(5) { transition-delay: .44s; }
+
+  h1, h2, h3, p { margin: 0; }
+  h1 {
+    font-size: 3.5rem;
+    line-height: 1.04;
+    letter-spacing: -0.05em;
+    width: 100%;
+    max-width: 980px;
+    margin-inline: auto;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2), var(--accent-3));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  h2 {
+    font-size: 2.45rem;
+    line-height: 1.08;
+    letter-spacing: -0.04em;
+    width: 100%;
+    max-width: 960px;
+    margin-inline: auto;
+  }
+  h3 { font-size: 1.06rem; color: var(--accent); margin-bottom: 10px; }
+  p, li { font-size: 1.04rem; line-height: 1.64; color: var(--muted); }
+  strong { color: var(--ink); font-weight: 600; }
+  code {
+    font-family: var(--mono);
+    font-size: .92em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    background: rgba(125, 211, 252, 0.08);
+    color: var(--accent);
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    max-width: 1160px;
+    margin-inline: auto;
+    font-family: var(--mono);
+    font-size: .82rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .eyebrow::before {
+    content: "";
+    width: 34px;
+    height: 1px;
+    background: linear-gradient(90deg, var(--accent), transparent);
+  }
+  .subtitle {
+    width: 100%;
+    max-width: 780px;
+    margin-inline: auto;
+    font-size: 1.24rem;
+    line-height: 1.55;
+  }
+
+  .glass, .glass-sm {
+    background: var(--glass);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(18px);
+  }
+  .glass { border-radius: 24px; padding: 28px; }
+  .glass-sm { border-radius: 18px; padding: 20px 22px; box-shadow: 0 18px 46px rgba(0,0,0,.22); }
+  .slide > .glass,
+  .slide > .glass-sm,
+  .slide > .hero,
+  .slide > .grid-2,
+  .slide > .grid-3,
+  .slide > .grid-4,
+  .slide > .timeline,
+  .slide > .band,
+  .slide > .compare,
+  .slide > .metrics,
+  .slide > .flow,
+  .slide > .tags {
+    margin-inline: auto;
+  }
+
+  .grid-2, .grid-3, .grid-4, .timeline, .band, .compare, .metrics {
+    display: grid;
+    gap: 16px;
+    width: 100%;
+    max-width: 1160px;
+  }
+  .grid-2, .compare { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-3, .metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid-4, .timeline, .band { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, .95fr);
+    gap: 28px;
+    align-items: center;
+    width: 100%;
+    max-width: 1160px;
+  }
+
+  .bullets { list-style: none; padding: 0; display: grid; gap: 12px; }
+  .bullets li { position: relative; padding-left: 22px; }
+  .bullets li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-weight: 700;
+  }
+
+  .metric-card { text-align: center; display: grid; gap: 8px; }
+  .metric-num { font-size: 2.7rem; line-height: 1; font-weight: 700; color: var(--accent-2); }
+
+  .timeline-card { position: relative; overflow: hidden; }
+  .timeline-card::after {
+    content: "";
+    position: absolute;
+    right: -18px;
+    bottom: -26px;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(125, 211, 252, .12), transparent 70%);
+  }
+  .timeline-year { font-family: var(--mono); font-size: .82rem; color: var(--accent); margin-bottom: 10px; }
+
+  .stage-pill {
+    padding: 13px 14px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    text-align: center;
+    font-family: var(--mono);
+    font-size: .84rem;
+    color: var(--muted);
+    animation: stage-glow 8s ease-in-out infinite;
+  }
+  .stage-pill:nth-child(2) { animation-delay: 2s; }
+  .stage-pill:nth-child(3) { animation-delay: 4s; }
+  .stage-pill:nth-child(4) { animation-delay: 6s; }
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    max-width: 1120px;
+  }
+  .flow-box {
+    min-height: 92px;
+    padding: 16px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: var(--glass);
+    display: grid;
+    place-items: center;
+    text-align: center;
+  }
+  .flow-box strong { display: block; margin-bottom: 5px; }
+  .arrow {
+    position: relative;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(125,211,252,.18), rgba(125,211,252,.95));
+  }
+  .arrow::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid var(--accent);
+  }
+  .pulse {
+    position: absolute;
+    top: -3px;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 0 6px rgba(94,234,212,.16);
+    animation: pulse-run 3.2s ease-in-out infinite;
+  }
+
+  .meter-track {
+    position: relative;
+    height: 12px;
+    border-radius: 999px;
+    background: rgba(255,255,255,.07);
+    overflow: hidden;
+  }
+  .meter-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--good), var(--accent));
+    animation: fill-loop 6s ease-in-out infinite;
+  }
+  .meter-threshold {
+    position: absolute;
+    left: 78%;
+    top: -5px;
+    bottom: -5px;
+    width: 2px;
+    background: rgba(253, 164, 175, 0.9);
+  }
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    font-family: var(--mono);
+    font-size: .82rem;
+    color: var(--muted);
+  }
+
+  .line-list { display: grid; gap: 8px; margin-top: 14px; }
+  .line {
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.04);
+    font-family: var(--mono);
+    font-size: .82rem;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+  .line.old { animation: fade-old 6s ease-in-out infinite; }
+  .line.reveal { animation: reveal-line 6s ease-in-out infinite; }
+
+  .terminal {
+    padding: 0;
+    overflow: hidden;
+  }
+  .terminal-top {
+    display: flex;
+    gap: 6px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(255,255,255,.03);
+  }
+  .terminal-top span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .terminal-body {
+    padding: 18px;
+    min-height: 230px;
+    display: grid;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: .8rem;
+  }
+  .terminal-line {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: line-in 5.2s linear infinite;
+  }
+  .terminal-line:nth-child(1) { animation-delay: .1s; }
+  .terminal-line:nth-child(2) { animation-delay: .5s; }
+  .terminal-line:nth-child(3) { animation-delay: .9s; }
+  .terminal-line:nth-child(4) { animation-delay: 1.3s; }
+  .terminal-line:nth-child(5) { animation-delay: 1.7s; }
+  .terminal-line:nth-child(6) { animation-delay: 2.1s; }
+  .terminal-line:nth-child(7) { animation-delay: 2.5s; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; width: 100%; max-width: 1160px; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(125, 211, 252, 0.08);
+    color: var(--accent);
+    font-size: .9rem;
+  }
+
+  .progress {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    height: 3px;
+    width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+    z-index: 50;
+    transition: width .4s ease;
+  }
+  .counter, .nav-hint {
+    position: fixed;
+    bottom: 16px;
+    z-index: 40;
+    font-family: var(--mono);
+    font-size: .82rem;
+    color: rgba(238,245,255,.55);
+  }
+  .counter { right: 24px; }
+  .nav-hint { left: 24px; }
+
+  .mini-flow {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+    max-width: 1120px;
+    margin-inline: auto;
+  }
+
+  .mini-card {
+    padding: 18px 18px;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    min-height: 120px;
+    display: grid;
+    align-content: start;
+    gap: 8px;
+  }
+
+  .mini-card strong {
+    display: block;
+    font-size: .94rem;
+    color: var(--ink);
+  }
+
+  .mini-card span {
+    display: block;
+    font-size: .96rem;
+    line-height: 1.55;
+    color: var(--muted);
+  }
+
+  .approval-grid {
+    display: grid;
+    grid-template-columns: 1.1fr .9fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 1120px;
+    margin-inline: auto;
+  }
+
+  .scan-card {
+    display: grid;
+    grid-template-columns: 148px minmax(0, 1fr);
+    gap: 18px;
+    align-items: center;
+    padding: 18px;
+    border-radius: 22px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    margin-top: 16px;
+  }
+
+  .scan-qr {
+    width: 148px;
+    height: 148px;
+    padding: 10px;
+    border-radius: 18px;
+    background: rgba(255,255,255,.96);
+    box-shadow: 0 18px 40px rgba(0,0,0,.18);
+  }
+
+  .scan-qr img {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .scan-copy {
+    display: grid;
+    gap: 8px;
+  }
+
+  .scan-copy a {
+    color: var(--accent);
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  .scan-copy a:hover {
+    text-decoration: underline;
+  }
+
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    width: 100%;
+    max-width: 1120px;
+    margin-inline: auto;
+  }
+
+  .process-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 210px;
+  }
+
+  .process-card::after {
+    content: "";
+    position: absolute;
+    inset: auto -20px -30px auto;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, rgba(125, 211, 252, 0.14), transparent 72%);
+    pointer-events: none;
+  }
+
+  .tool-cloud,
+  .window-stack,
+  .skill-pipeline {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .tool-cloud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tool-chip {
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    font-family: var(--mono);
+    font-size: .8rem;
+    color: var(--muted);
+    opacity: .46;
+    transform: scale(.98);
+    animation: tool-chip-cycle 6.4s ease-in-out infinite;
+  }
+
+  .tool-chip:nth-child(2) { animation-delay: .5s; }
+  .tool-chip:nth-child(3) { animation-delay: 1s; }
+  .tool-chip:nth-child(4) { animation-delay: 1.5s; }
+  .tool-chip:nth-child(5) { animation-delay: 2s; }
+  .tool-chip:nth-child(6) { animation-delay: 2.5s; }
+
+  .window-line,
+  .handoff-line,
+  .skill-step {
+    padding: 11px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    font-size: .88rem;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .window-line {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: stage-line-cycle 6s ease-in-out infinite;
+  }
+
+  .window-line:nth-child(1) { animation-delay: .1s; }
+  .window-line:nth-child(2) { animation-delay: 1.2s; }
+  .window-line:nth-child(3) { animation-delay: 2.3s; }
+
+  .handoff-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr);
+    gap: 14px;
+    align-items: center;
+    width: 100%;
+    max-width: 1120px;
+    margin-inline: auto;
+  }
+
+  .handoff-arrow {
+    position: relative;
+    width: 64px;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(94,234,212,.12), rgba(94,234,212,.94));
+  }
+
+  .handoff-arrow::after {
+    content: "";
+    position: absolute;
+    right: -1px;
+    top: -4px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid var(--accent-2);
+  }
+
+  .handoff-arrow::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent-2);
+    box-shadow: 0 0 0 6px rgba(94,234,212,.14);
+    animation: pulse-run 3.2s ease-in-out infinite;
+  }
+
+  .handoff-line {
+    opacity: 0;
+    transform: translateY(8px);
+    animation: handoff-reveal 6.2s ease-in-out infinite;
+  }
+
+  .handoff-line:nth-child(1) { animation-delay: .15s; }
+  .handoff-line:nth-child(2) { animation-delay: 1.25s; }
+  .handoff-line:nth-child(3) { animation-delay: 2.4s; }
+  .handoff-line:nth-child(4) { animation-delay: 3.7s; }
+
+  .skill-step {
+    position: relative;
+    opacity: .52;
+    animation: skill-stage-cycle 7s ease-in-out infinite;
+  }
+
+  .skill-step:nth-child(2) { animation-delay: 1.6s; }
+  .skill-step:nth-child(3) { animation-delay: 3.2s; }
+  .skill-step:nth-child(4) { animation-delay: 4.8s; }
+
+  .skill-step strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .approval-list {
+    display: grid;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .approval-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    align-items: center;
+    padding: 11px 12px;
+    border-radius: 12px;
+    background: rgba(255,255,255,.04);
+    font-size: .9rem;
+    color: var(--ink);
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 88px;
+    min-height: 30px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: .78rem;
+    border: 1px solid var(--line);
+    background: rgba(255,255,255,.04);
+    color: var(--muted);
+  }
+
+  .badge.allow {
+    color: var(--good);
+    border-color: rgba(134,239,172,.26);
+    background: rgba(134,239,172,.09);
+  }
+
+  .badge.pending {
+    color: var(--warn);
+    border-color: rgba(253,164,175,.24);
+    background: rgba(253,164,175,.09);
+  }
+
+  .badge.block {
+    color: var(--muted);
+  }
+
+  @keyframes pulse-run {
+    0% { left: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { left: calc(100% - 8px); opacity: 0; }
+  }
+  @keyframes fill-loop {
+    0%,18% { width: 38%; background: linear-gradient(90deg, var(--good), var(--accent)); }
+    45%,58% { width: 92%; background: linear-gradient(90deg, var(--warn), #fb7185); }
+    100% { width: 43%; background: linear-gradient(90deg, var(--good), var(--accent)); }
+  }
+  @keyframes fade-old {
+    0%,42% { opacity: 1; max-height: 80px; padding-top: 10px; padding-bottom: 10px; }
+    64%,100% { opacity: 0; max-height: 0; padding-top: 0; padding-bottom: 0; overflow: hidden; }
+  }
+  @keyframes reveal-line {
+    0%,56% { opacity: 0; transform: translateY(8px); }
+    72%,100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes line-in {
+    0%,100% { opacity: 0; transform: translateY(8px); }
+    8%,24% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes stage-glow {
+    0%,20%,100% { border-color: var(--line); color: var(--muted); box-shadow: none; background: rgba(255,255,255,.04); }
+    24%,46% { border-color: rgba(94,234,212,.34); color: var(--ink); box-shadow: 0 0 0 1px rgba(94,234,212,.18), 0 12px 30px rgba(94,234,212,.12); background: rgba(94,234,212,.08); }
+  }
+  @keyframes tool-chip-cycle {
+    0%,100% { opacity: .42; transform: scale(.98); color: var(--muted); border-color: var(--line); background: rgba(255,255,255,.04); }
+    18%,42% { opacity: 1; transform: scale(1); color: var(--ink); border-color: rgba(125,211,252,.3); background: rgba(125,211,252,.1); box-shadow: 0 14px 32px rgba(125,211,252,.12); }
+  }
+  @keyframes stage-line-cycle {
+    0%,100% { opacity: 0; transform: translateY(8px); }
+    14%,54% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes handoff-reveal {
+    0%,100% { opacity: 0; transform: translateY(8px); }
+    12%,64% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes skill-stage-cycle {
+    0%,100% { opacity: .48; transform: translateY(0); border-color: var(--line); background: rgba(255,255,255,.04); }
+    18%,38% { opacity: 1; transform: translateY(-2px); border-color: rgba(94,234,212,.28); background: rgba(94,234,212,.1); box-shadow: 0 12px 28px rgba(94,234,212,.1); }
+  }
+
+  @media (max-width: 1100px) {
+    .slide { padding: 40px 32px 66px; }
+    .hero, .grid-2, .grid-3, .grid-4, .timeline, .band, .compare, .metrics, .flow, .mini-flow, .approval-grid, .process-grid, .handoff-stage, .scan-card { grid-template-columns: 1fr; }
+    .scan-card { justify-items: center; text-align: center; }
+    .handoff-arrow { width: 100%; }
+    h1 { font-size: 2.85rem; }
+    h2 { font-size: 2.05rem; }
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+</div>
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter"></div>
+<div class="nav-hint">← → / Space / PgUp PgDn</div>
+<script>
+  const slidesMarkup = [
+    `
+      <section class="slide active" data-slide="0">
+        <div class="eyebrow anim">Conference Talk</div>
+        <h1 class="anim">Эволюция контекстной инженерии для ИИ-агентов</h1>
+        <p class="subtitle anim">От улучшения одного prompt к управлению жизненным циклом контекста: retrieval, compaction, memory, tools, subagents и process-aware evaluation.</p>
+        <div class="hero anim">
+          <div class="glass">
+            <h3>О чём этот доклад</h3>
+            <ul class="bullets">
+              <li>Почему проблема агента обычно не в «маленьком окне», а в плохом отборе и управлении состоянием.</li>
+              <li>Как менялась единица дизайна: <strong>prompt → retrieval → lifecycle → memory → orchestration</strong>.</li>
+              <li>Какие механики сегодня реально определяют качество длинной агентной сессии.</li>
+            </ul>
+          </div>
+          <div class="glass">
+            <div class="metrics" style="grid-template-columns:1fr;">
+              <div class="metric-card"><div class="metric-num">5</div><div>этапов эволюции</div></div>
+              <div class="metric-card"><div class="metric-num">8+</div><div>ключевых механик контекстной инженерии</div></div>
+              <div class="metric-card"><div class="metric-num">1</div><div>главный тезис: agent = model + harness + context policy</div></div>
+            </div>
+            <div class="scan-card">
+              <div class="scan-qr">
+                <img src="qrcode.svg" alt="QR-код на mindmap">
+              </div>
+              <div class="scan-copy">
+                <h3>Живая mindmap</h3>
+                <p>Сканируй во время доклада, чтобы открыть интерактивную карту и посмотреть механики в detail-panel.</p>
+                <a href="https://safreliy.github.io/context-engineering-mindmap/" target="_blank" rel="noreferrer">https://safreliy.github.io/context-engineering-mindmap/</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="1">
+        <div class="eyebrow anim">Structure</div>
+        <h2 class="anim">Структура презентации</h2>
+        <div class="timeline anim">
+          <div class="glass-sm timeline-card"><div class="timeline-year">1</div><h3>От prompt engineering</h3><p>Когда казалось, что всё решает удачный запрос к модели.</p></div>
+          <div class="glass-sm timeline-card"><div class="timeline-year">2</div><h3>К retrieval и tool use</h3><p>Появляется вопрос не только «что спросить», но и «что выбрать».</p></div>
+          <div class="glass-sm timeline-card"><div class="timeline-year">3</div><h3>К lifecycle контекста</h3><p>Контекст проектируется во времени: pruning, compaction, reinjection.</p></div>
+          <div class="glass-sm timeline-card"><div class="timeline-year">4</div><h3>К памяти и координации</h3><p>Checkpoints, files as memory, replay, subagents, skills и evaluation.</p></div>
+        </div>
+        <div class="band anim">
+          <div class="stage-pill">Problem framing</div>
+          <div class="stage-pill">Mechanics</div>
+          <div class="stage-pill">Real systems</div>
+          <div class="stage-pill">Evaluation</div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="2">
+        <div class="eyebrow anim">Evolution</div>
+        <h2 class="anim">Как менялась единица дизайна</h2>
+        <div class="flow anim">
+          <div class="flow-box"><div><strong>Prompt</strong><div>один текст на входе</div></div></div>
+          <div class="arrow"><span class="pulse"></span></div>
+          <div class="flow-box"><div><strong>Prompt + RAG</strong><div>добавили внешний контекст</div></div></div>
+          <div class="arrow"><span class="pulse" style="animation-delay:.5s;"></span></div>
+          <div class="flow-box"><div><strong>Agent loop</strong><div>tools, retries, промежуточное состояние</div></div></div>
+          <div class="arrow"><span class="pulse" style="animation-delay:1s;"></span></div>
+          <div class="flow-box"><div><strong>Context policy</strong><div>жизненный цикл контекста как объект дизайна</div></div></div>
+        </div>
+        <div class="compare anim">
+          <div class="glass-sm"><h3>Старый вопрос</h3><p>Как лучше сформулировать запрос, чтобы модель сразу ответила правильно?</p></div>
+          <div class="glass-sm"><h3>Новый вопрос</h3><p>Какие данные, артефакты, права и следы работы агент должен видеть <strong>на каждом шаге</strong>, в каком формате и как долго?</p></div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="3">
+        <div class="eyebrow anim">Retrieval</div>
+        <h2 class="anim">Первый большой сдвиг: retrieval вместо линейного чтения</h2>
+        <div class="grid-3 anim">
+          <div class="glass-sm"><h3>Лексический поиск</h3><p>Для кода exact match часто надёжнее «смысла»: identifier search, regex, path search, error strings.</p></div>
+          <div class="glass-sm"><h3>Семантический поиск</h3><p>Нужен, когда слова не совпадают, но роль участка совпадает. Обычно работает вместе с reranking.</p></div>
+          <div class="glass-sm"><h3>Select-before-read</h3><p>Хороший агент сначала сужает пространство, а уже потом читает содержимое точечно.</p></div>
+        </div>
+        <div class="glass anim"><p><strong>Новый вопрос retrieval-эры:</strong> важно не только что читать, но и каким путём к этому прийти: exact search, semantic search, repo map, graph, tool selection до чтения.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="4">
+        <div class="eyebrow anim">Lifecycle</div>
+        <h2 class="anim">Второй сдвиг: контекст начали проектировать во времени</h2>
+        <div class="grid-4 anim">
+          <div class="glass-sm"><h3>Prevention</h3><p>Сужать контекст заранее: фазами, лимитами rounds и scoped reads.</p></div>
+          <div class="glass-sm"><h3>Pruning</h3><p>Убирать старые tool outputs из горячего окна, а не держать их дословно.</p></div>
+          <div class="glass-sm"><h3>Compaction</h3><p>Сжимать хвост сессии в рабочее состояние, а не в литературный пересказ.</p></div>
+          <div class="glass-sm"><h3>Reinjection</h3><p>Возвращать в окно не историю, а компактное состояние и артефакты.</p></div>
+        </div>
+        <div class="glass anim"><p>Именно здесь context engineering перестаёт быть «улучшением prompt» и становится <strong>управлением жизненным циклом окна</strong>.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="13">
+        <div class="eyebrow anim">Example</div>
+        <h2 class="anim">Пример: bugfix-сессия без лишнего чтения</h2>
+        <div class="mini-flow anim">
+          <div class="glass mini-card">
+            <strong>1. Локализация</strong>
+            <span>Сначала <code>search "rename"</code> и <code>search "cache key"</code>, а не чтение всего модуля целиком.</span>
+          </div>
+          <div class="glass mini-card">
+            <strong>2. Scoped read</strong>
+            <span>После exact search агент читает только <code>cache.ts</code> и <code>rename.ts</code>, а не весь каталог.</span>
+          </div>
+          <div class="glass mini-card">
+            <strong>3. Проверка</strong>
+            <span>Затем запускает только <code>targeted/cache-rename.spec.ts</code>, получает короткий сигнал и продолжает цикл.</span>
+          </div>
+        </div>
+        <div class="compare anim">
+          <div class="glass-sm">
+            <h3>Плохой путь</h3>
+            <p>Открыть полрепозитория, запустить полный test suite, потом пытаться всё это сжать.</p>
+          </div>
+          <div class="glass-sm">
+            <h3>Хороший путь</h3>
+            <p><strong>Search → shortlist → scoped read → targeted test</strong>. Сначала уменьшаем пространство, потом наращиваем только нужный рабочий контекст.</p>
+          </div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="5">
+        <div class="eyebrow anim">Mechanic</div>
+        <h2 class="anim">Compaction как системная операция</h2>
+        <div class="glass anim">
+          <div class="meter-track">
+            <div class="meter-fill"></div>
+            <div class="meter-threshold"></div>
+          </div>
+          <div class="meter-labels"><span>активное окно</span><span>порог compaction</span></div>
+        </div>
+        <div class="compare anim">
+          <div class="glass">
+            <h3>Активное окно</h3>
+            <div class="line-list">
+              <div class="line">последние сообщения по задаче</div>
+              <div class="line">свежий вывод тестов и поиска</div>
+              <div class="line old">старый хвост обсуждения</div>
+              <div class="line old">старые tool results и логи</div>
+            </div>
+          </div>
+          <div class="glass">
+            <h3>Компактное состояние</h3>
+            <div class="line-list">
+              <div class="line reveal">цель и текущий план</div>
+              <div class="line reveal">критичные файлы и ограничения</div>
+              <div class="line reveal">что уже проверили и исключили</div>
+              <div class="line reveal">ссылки на артефакты вместо полного хвоста</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim"><p><strong>Ключевая мысль:</strong> compaction полезен не тогда, когда он красиво сокращает текст, а когда после него агент может продолжать работу без потери рабочего состояния.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="6">
+        <div class="eyebrow anim">Mechanic</div>
+        <h2 class="anim">Pruning и форма результатов инструментов</h2>
+        <div class="compare anim">
+          <div class="glass terminal">
+            <div class="terminal-top"><span style="background:#fb7185;"></span><span style="background:#facc15;"></span><span style="background:#4ade80;"></span></div>
+            <div class="terminal-body">
+              <div class="terminal-line">[tool] read_file → 5000 lines</div>
+              <div class="terminal-line">[tool] search → 40 matches</div>
+              <div class="terminal-line">[tool] pytest → long traceback</div>
+              <div class="terminal-line">[assistant] now reason over all of that</div>
+              <div class="terminal-line">[problem] raw output flooded the hot window</div>
+            </div>
+          </div>
+          <div class="glass">
+            <h3>После pruning + хорошего tool contract</h3>
+            <div class="line-list">
+              <div class="line">read_file → только релевантные секции + offsets</div>
+              <div class="line">search → 3 лучших совпадения вместо 40</div>
+              <div class="line">pytest → exit code + 2 ключевые ошибки</div>
+              <div class="line">полный вывод остаётся артефактом, а не горячим контекстом</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim"><p><strong>Эволюционный сдвиг:</strong> мы перестаём думать только о summary после факта и начинаем проектировать <strong>сам контракт инструмента</strong>, чтобы шум вообще не попадал в активное окно.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="16">
+        <div class="eyebrow anim">Mechanic</div>
+        <h2 class="anim">Пример: deferred loading и выбор инструментов до загрузки схем</h2>
+        <div class="process-grid anim">
+          <div class="glass process-card">
+            <h3>Полный каталог</h3>
+            <div class="tool-cloud">
+              <div class="tool-chip">read_file</div>
+              <div class="tool-chip">search_code</div>
+              <div class="tool-chip">run_tests</div>
+              <div class="tool-chip">browser</div>
+              <div class="tool-chip">deploy</div>
+              <div class="tool-chip">db_admin</div>
+            </div>
+          </div>
+          <div class="glass process-card">
+            <h3>Shortlist по задаче</h3>
+            <div class="window-stack">
+              <div class="window-line">bugfix around rename -> нужны search_code и read_file</div>
+              <div class="window-line">после гипотезы -> добавить run_tests</div>
+              <div class="window-line">browser, deploy и db_admin в окно не попадают</div>
+            </div>
+          </div>
+          <div class="glass process-card">
+            <h3>Горячее окно</h3>
+            <div class="window-stack">
+              <div class="window-line">tool schemas только для 2-3 выбранных tools</div>
+              <div class="window-line">короткие контракты вместо полного каталога</div>
+              <div class="window-line">меньше шума до первого реального действия</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim"><p><strong>Смысл:</strong> агенту не нужно держать в активном окне весь зоопарк возможностей. Сначала он выбирает путь решения, и только потом runtime подаёт релевантные схемы инструментов.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="7">
+        <div class="eyebrow anim">Memory</div>
+        <h2 class="anim">Третий сдвиг: память и состояние выносятся за пределы окна</h2>
+        <div class="grid-3 anim">
+          <div class="glass-sm"><h3>Files as memory</h3><p><code>research-notes.md</code>, <code>plan.md</code>, <code>decisions.md</code> становятся адресуемым внешним состоянием.</p></div>
+          <div class="glass-sm"><h3>Checkpoints</h3><p>Агент может не только помнить, но и возвращаться к стабильной точке после неудачного эксперимента.</p></div>
+          <div class="glass-sm"><h3>Event log</h3><p>История выполнения хранится как события и checkpoints, а не только как линейный чат.</p></div>
+        </div>
+        <div class="compare anim">
+          <div class="glass-sm"><h3>Старый мир</h3><p>Чтобы продолжить работу, модель перечитывает прошлый разговор или опирается на одну грубую summary.</p></div>
+          <div class="glass-sm"><h3>Новый мир</h3><p>Runtime берёт <strong>checkpoint + history slice + external artifact</strong> и собирает только нужное resume state.</p></div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="8">
+        <div class="eyebrow anim">Mechanic</div>
+        <h2 class="anim">Журнал событий, checkpoints и replay</h2>
+        <div class="grid-3 anim">
+          <div class="glass">
+            <h3>Журнал событий</h3>
+            <div class="line-list">
+              <div class="line">12:03 read_file src/cache.ts</div>
+              <div class="line">12:04 search "rename"</div>
+              <div class="line">12:05 targeted test</div>
+              <div class="line">12:07 checkpoint before patch</div>
+              <div class="line">12:09 patch applied</div>
+              <div class="line">12:11 test failed</div>
+            </div>
+          </div>
+          <div class="glass">
+            <h3>Выбранный срез</h3>
+            <div class="line-list">
+              <div class="line">checkpoint before patch</div>
+              <div class="line">patch around key rebuild</div>
+              <div class="line">failure after rename</div>
+            </div>
+          </div>
+          <div class="glass">
+            <h3>Resume state</h3>
+            <div class="line-list">
+              <div class="line">проблема локализована вокруг rename</div>
+              <div class="line">следующий шаг: проверить invalidation path</div>
+              <div class="line">нужны только 3 файла и 1 targeted spec</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim"><p><strong>Важно:</strong> replay не равен простому pruning. Здесь задача не сократить один шумный ответ, а <strong>воспроизвести рабочую точку продолжения</strong> из сохранённой истории и checkpoints.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="9">
+        <div class="eyebrow anim">Orchestration</div>
+        <h2 class="anim">Четвёртый сдвиг: контекст начинают распределять по ролям</h2>
+        <div class="grid-3 anim">
+          <div class="glass-sm"><h3>Subagents</h3><p>Подзадача уходит в отдельное окно и возвращается не всей историей, а компактным результатом.</p></div>
+          <div class="glass-sm"><h3>Skills</h3><p>Переиспользуемая процедура живёт вне беседы и адресуется только когда нужна.</p></div>
+          <div class="glass-sm"><h3>Planner / executor</h3><p>Абстрактный план и операционный след больше не обязаны жить в одном контуре.</p></div>
+        </div>
+        <div class="compare anim">
+          <div class="glass"><h3>Главное окно</h3><div class="line-list"><div class="line">цель и ограничения</div><div class="line">последние подтверждённые факты</div><div class="line">делегирование без полного trail</div></div></div>
+          <div class="glass"><h3>Окно сабагента</h3><div class="line-list"><div class="line">длинный поиск по файлам и тестам</div><div class="line">спорные места и гипотезы</div><div class="line">назад: summary + artifact + 2-3 ключевых факта</div></div></div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="17">
+        <div class="eyebrow anim">Mechanic</div>
+        <h2 class="anim">Пример: subagent handoff через артефакт, а не через полный trail</h2>
+        <div class="handoff-stage anim">
+          <div class="glass process-card">
+            <h3>Главный контур</h3>
+            <div class="line-list">
+              <div class="handoff-line">цель: понять, почему rename ломает cache invalidation</div>
+              <div class="handoff-line">в окне держим только цель, ограничения и 2 подтверждённых факта</div>
+              <div class="handoff-line">дальше задача уходит исследовательскому сабагенту</div>
+            </div>
+          </div>
+          <div class="handoff-arrow"></div>
+          <div class="glass process-card">
+            <h3>Сабагент и возврат</h3>
+            <div class="line-list">
+              <div class="handoff-line">длинный поиск по файлам и targeted tests остаётся в отдельном окне</div>
+              <div class="handoff-line">результат: <code>notes/rename-investigation.md</code></div>
+              <div class="handoff-line">назад идёт только summary: suspect path = key rebuild after rename</div>
+              <div class="handoff-line">координатор продолжает уже с артефактом, а не с полной историей исследования</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim"><p><strong>Ключевая польза:</strong> координатор не наследует весь боковой шум. Он получает проверяемый артефакт и короткий handoff, который меняет следующий шаг.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="18">
+        <div class="eyebrow anim">Mechanic</div>
+        <h2 class="anim">Пример: skills как адресуемая процедура, а не вечный prompt ballast</h2>
+        <div class="process-grid anim">
+          <div class="glass process-card">
+            <h3>Сигнал задачи</h3>
+            <div class="skill-pipeline">
+              <div class="skill-step"><strong>Task</strong>Нужно провести code review и вернуть только findings.</div>
+              <div class="skill-step"><strong>Trigger</strong>Runtime распознаёт режим review по задаче или явной команде.</div>
+            </div>
+          </div>
+          <div class="glass process-card">
+            <h3>Подключение навыка</h3>
+            <div class="skill-pipeline">
+              <div class="skill-step"><strong>Skill loaded</strong>Подмешиваются локальные инструкции review-режима.</div>
+              <div class="skill-step"><strong>Scope</strong>В окно попадает только нужная процедура, а не весь каталог навыков.</div>
+            </div>
+          </div>
+          <div class="glass process-card">
+            <h3>Рабочий результат</h3>
+            <div class="skill-pipeline">
+              <div class="skill-step"><strong>Behavior</strong>Агент сначала ищет баги и риски, а не пишет обзор общего вида.</div>
+              <div class="skill-step"><strong>Effect</strong>Полезная политика поведения загружается по требованию и не засоряет каждую сессию.</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim"><p><strong>Смысл skills:</strong> повторяемая процедура живёт вне беседы и адресуется только тогда, когда действительно нужна. Это ещё один способ держать базовый контекст легче.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="14">
+        <div class="eyebrow anim">Example</div>
+        <h2 class="anim">Пример: planner / executor как разделение абстракции и шума</h2>
+        <div class="compare anim">
+          <div class="glass">
+            <h3>Контур планирования</h3>
+            <div class="line-list">
+              <div class="line">Цель: понять, почему stale key переживает rename</div>
+              <div class="line">Шаг 1: локализовать rebuild ключа</div>
+              <div class="line">Шаг 2: проверить invalidation path</div>
+            </div>
+          </div>
+          <div class="glass">
+            <h3>Контур исполнения</h3>
+            <div class="line-list">
+              <div class="line">rg "cache key" src/</div>
+              <div class="line">read_file cache.ts + rename.ts</div>
+              <div class="line">run targeted spec</div>
+              <div class="line">назад вернуть только observation summary</div>
+            </div>
+          </div>
+        </div>
+        <div class="glass-sm anim">
+          <p><strong>Смысл:</strong> планирующий слой не должен тащить весь shell trail и все чтения файлов. Назад к нему должен возвращаться только короткий вывод, который меняет следующий шаг.</p>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="15">
+        <div class="eyebrow anim">Example</div>
+        <h2 class="anim">Пример: routing, sandbox и approvals</h2>
+        <div class="approval-grid anim">
+          <div class="glass">
+            <h3>Фазы доступа</h3>
+            <div class="approval-list">
+              <div class="approval-item"><span>Чтение и поиск</span><span class="badge allow">allowed</span></div>
+              <div class="approval-item"><span>Локальная правка в scope</span><span class="badge allow">allowed</span></div>
+              <div class="approval-item"><span>Сетевой вызов / запись вне scope</span><span class="badge pending">approve</span></div>
+              <div class="approval-item"><span>Опасная shell-команда</span><span class="badge block">blocked</span></div>
+            </div>
+          </div>
+          <div class="glass">
+            <h3>Почему это часть context engineering</h3>
+            <div class="line-list">
+              <div class="line">фаза разбора не должна видеть тот же набор действий, что и фаза правки</div>
+              <div class="line">sandbox влияет не только на риск, но и на форму допустимого рабочего контекста</div>
+              <div class="line">опасный шаг выносится из общего loop в явный gate</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="10">
+        <div class="eyebrow anim">Systems</div>
+        <h2 class="anim">Как это проявляется в реальных системах</h2>
+        <div class="grid-3 anim">
+          <div class="glass-sm"><h3>Claude Code</h3><p><strong>CLAUDE.md</strong>, context window UI, <code>/compact</code>, hooks, commands, skills, subagents, MCP.</p></div>
+          <div class="glass-sm"><h3>Codex CLI</h3><p><strong>AGENTS.md</strong>, approvals, sandbox, hooks, subagents и жёсткая связка контекста с режимом исполнения.</p></div>
+          <div class="glass-sm"><h3>Gemini CLI</h3><p><strong>GEMINI.md</strong>, checkpoints, trusted folders и явная модель доверия к среде.</p></div>
+          <div class="glass-sm"><h3>OpenCode</h3><p>Явные роли агентов, конфиг как слой контекста и внутренние агенты для compaction.</p></div>
+          <div class="glass-sm"><h3>ForgeCode</h3><p>Context engine, semantic/exact search, compaction policy, services и skills как часть среды агента.</p></div>
+          <div class="glass-sm"><h3>Общий вывод</h3><p>Системы различаются не только моделью, а тем, где живёт состояние и как агент переживает длинную сессию.</p></div>
+        </div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="11">
+        <div class="eyebrow anim">Evaluation</div>
+        <h2 class="anim">Пятый сдвиг: оценивать начинают не только итог, но и процесс</h2>
+        <div class="grid-3 anim">
+          <div class="glass-sm"><h3>Outcome metrics</h3><p>pass rate, verified pass, latency to useful result, cost per solved task.</p></div>
+          <div class="glass-sm"><h3>Process metrics</h3><p>retrieval quality, overflow rate, compaction faithfulness, oversized tool outputs, repeat fetches.</p></div>
+          <div class="glass-sm"><h3>Observability</h3><p>Без трасс и событий сложно понять, почему агент выиграл или проиграл: из-за модели, retrieval, compaction или orchestration.</p></div>
+        </div>
+        <div class="glass anim"><p>На этом этапе context engineering перестаёт быть «набором техник» и становится частью <strong>измеряемой архитектуры</strong>.</p></div>
+      </section>
+    `,
+    `
+      <section class="slide" data-slide="12">
+        <div class="eyebrow anim">Takeaways</div>
+        <h2 class="anim">Главные выводы</h2>
+        <div class="grid-2 anim">
+          <div class="glass"><h3>1. Контекстная инженерия эволюционировала</h3><p>От улучшения одного prompt к проектированию полного жизненного цикла контекста.</p></div>
+          <div class="glass"><h3>2. Лучшие механики сегодня</h3><p>retrieval path, tool contracts, pruning, compaction, replay, skills, subagents, trust model.</p></div>
+          <div class="glass"><h3>3. Agent quality = model quality × harness quality</h3><p>Сильная модель без политики контекста быстро тонет в шуме и хрупких handoff.</p></div>
+          <div class="glass"><h3>4. Следующий рубеж</h3><p>Не просто большее окно, а более умная архитектура: memory manager, adaptive orchestration и process-aware evals.</p></div>
+        </div>
+        <div class="tags anim">
+          <span class="tag">Retrieval</span>
+          <span class="tag">Compaction</span>
+          <span class="tag">Replay</span>
+          <span class="tag">Skills</span>
+          <span class="tag">Subagents</span>
+          <span class="tag">Evaluation</span>
+        </div>
+      </section>
+    `
+  ];
+
+  const deck = document.getElementById("deck");
+  deck.innerHTML = slidesMarkup.join("");
+
+  const slides = Array.from(document.querySelectorAll(".slide"));
+  const total = slides.length;
+  const progress = document.getElementById("progress");
+  const counter = document.getElementById("counter");
+  let current = 0;
+
+  function syncUi() {
+    counter.textContent = `${current + 1} / ${total}`;
+    progress.style.width = `${(current / Math.max(total - 1, 1)) * 100}%`;
+  }
+
+  function go(nextIndex) {
+    if (nextIndex < 0 || nextIndex >= total || nextIndex === current) return;
+    const oldSlide = slides[current];
+    const nextSlide = slides[nextIndex];
+    const dir = nextIndex > current ? "forward" : "backward";
+
+    slides.forEach((slide) => slide.classList.remove("active", "exit-left", "exit-right", "enter-left"));
+    oldSlide.classList.add(dir === "forward" ? "exit-left" : "exit-right");
+    nextSlide.classList.add("active");
+    if (dir === "backward") nextSlide.classList.add("enter-left");
+
+    current = nextIndex;
+    syncUi();
+
+    setTimeout(() => {
+      slides.forEach((slide, index) => {
+        if (index !== current) slide.classList.remove("active", "exit-left", "exit-right", "enter-left");
+      });
+    }, 500);
+  }
+
+  document.addEventListener("keydown", (event) => {
+    if (["ArrowRight", "ArrowDown", "PageDown", " "].includes(event.key)) {
+      event.preventDefault();
+      go(current + 1);
+    }
+    if (["ArrowLeft", "ArrowUp", "PageUp"].includes(event.key)) {
+      event.preventDefault();
+      go(current - 1);
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      go(0);
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      go(total - 1);
+    }
+  });
+
+  let touchStartX = null;
+  document.addEventListener("touchstart", (event) => {
+    touchStartX = event.changedTouches[0].clientX;
+  }, { passive: true });
+
+  document.addEventListener("touchend", (event) => {
+    if (touchStartX == null) return;
+    const deltaX = event.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(deltaX) > 50) {
+      if (deltaX < 0) go(current + 1);
+      if (deltaX > 0) go(current - 1);
+    }
+    touchStartX = null;
+  }, { passive: true });
+
+  syncUi();
+</script>
+</body>
+</html>

@@ -374,7 +374,12 @@ const state = {
   nodeDragMoved: false,
   nodeDragStartOffsetX: 0,
   nodeDragStartOffsetY: 0,
-  pointerNodeId: null
+  pointerNodeId: null,
+  isPinching: false,
+  lastPinchDistance: 0,
+  lastPinchCenterX: 0,
+  lastPinchCenterY: 0,
+  mobileDetailOpen: false
 };
 
 const viewport = document.getElementById("viewport");
@@ -382,6 +387,10 @@ const board = document.getElementById("board");
 const nodeLayer = document.getElementById("node-layer");
 const connections = document.getElementById("connections");
 const chips = Array.from(document.querySelectorAll(".chip"));
+const detailDock = document.getElementById("detail-dock");
+const mobileDetailOpenBtn = document.getElementById("mobile-detail-open");
+const detailCloseBtn = document.getElementById("detail-close");
+const mobileDetailMedia = window.matchMedia("(max-width: 720px)");
 
 board.style.width = `${BOARD.width}px`;
 board.style.height = `${BOARD.height}px`;
@@ -3584,6 +3593,29 @@ function updateTransform() {
   board.style.transform = `translate(${state.tx}px, ${state.ty}px) scale(${state.scale})`;
 }
 
+function isMobileDetailMode() {
+  return mobileDetailMedia.matches;
+}
+
+function syncDetailDock() {
+  if (!detailDock) return;
+  const isMobile = isMobileDetailMode();
+  detailDock.classList.toggle("is-open", !isMobile || state.mobileDetailOpen);
+  if (mobileDetailOpenBtn) {
+    mobileDetailOpenBtn.textContent = isMobile && state.mobileDetailOpen ? "Скрыть" : "Детали";
+  }
+}
+
+function openMobileDetail() {
+  state.mobileDetailOpen = true;
+  syncDetailDock();
+}
+
+function closeMobileDetail() {
+  state.mobileDetailOpen = false;
+  syncDetailDock();
+}
+
 function centerBoard() {
   const rect = viewport.getBoundingClientRect();
   const fit = Math.min(rect.width / BOARD.width, rect.height / BOARD.height);
@@ -3726,7 +3758,6 @@ function renderDetail() {
 
   const vizCard = document.getElementById("detail-viz-card");
   const vizBox = document.getElementById("detail-viz");
-  const detailDock = document.getElementById("detail-dock");
   vizBox.innerHTML = "";
   const vizResult = renderViz(node);
   vizCard.hidden = !vizResult;
@@ -3766,6 +3797,8 @@ function renderDetail() {
       sourcesBox.appendChild(makeSourceLink(source));
     }
   });
+
+  syncDetailDock();
 }
 
 function render() {
@@ -3858,11 +3891,15 @@ function initPan() {
     viewport.releasePointerCapture(pointerId);
     if (shouldSelect) {
       state.selectedNodeId = releasedNodeId;
+      if (isMobileDetailMode()) {
+        openMobileDetail();
+      }
       render();
     }
   };
 
   viewport.addEventListener("pointerdown", (event) => {
+    if (state.isPinching) return;
     if (state.draggedNodeId) return;
     if (event.target.closest(".node-card") || event.target.closest(".node-toggle")) return;
     state.isDragging = true;
@@ -3875,6 +3912,7 @@ function initPan() {
   });
 
   viewport.addEventListener("pointermove", (event) => {
+    if (state.isPinching) return;
     if (state.draggedNodeId) {
       const dx = (event.clientX - state.dragStartX) / state.scale;
       const dy = (event.clientY - state.dragStartY) / state.scale;
@@ -3903,6 +3941,64 @@ function initPan() {
     stopNodeDrag(event.pointerId);
     stopDrag(event.pointerId);
   });
+
+  viewport.addEventListener(
+    "touchstart",
+    (event) => {
+      if (event.touches.length !== 2) return;
+      state.isPinching = true;
+      state.isDragging = false;
+      viewport.classList.remove("is-dragging");
+      if (state.draggedNodeId) {
+        const draggingCard = nodeLayer.querySelector(".node-card.is-dragging");
+        if (draggingCard) draggingCard.classList.remove("is-dragging");
+        state.draggedNodeId = null;
+        state.pointerNodeId = null;
+        state.nodeDragMoved = false;
+      }
+      const [touchA, touchB] = event.touches;
+      state.lastPinchDistance = Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
+      state.lastPinchCenterX = (touchA.clientX + touchB.clientX) / 2;
+      state.lastPinchCenterY = (touchA.clientY + touchB.clientY) / 2;
+    },
+    { passive: true }
+  );
+
+  viewport.addEventListener(
+    "touchmove",
+    (event) => {
+      if (!state.isPinching || event.touches.length !== 2) return;
+      event.preventDefault();
+      const [touchA, touchB] = event.touches;
+      const nextDistance = Math.hypot(touchB.clientX - touchA.clientX, touchB.clientY - touchA.clientY);
+      const centerX = (touchA.clientX + touchB.clientX) / 2;
+      const centerY = (touchA.clientY + touchB.clientY) / 2;
+      if (state.lastPinchDistance > 0) {
+        const factor = nextDistance / state.lastPinchDistance;
+        zoomAt(factor, centerX, centerY);
+        state.tx += centerX - state.lastPinchCenterX;
+        state.ty += centerY - state.lastPinchCenterY;
+        updateTransform();
+      }
+      state.lastPinchDistance = nextDistance;
+      state.lastPinchCenterX = centerX;
+      state.lastPinchCenterY = centerY;
+    },
+    { passive: false }
+  );
+
+  const finishPinch = () => {
+    state.isPinching = false;
+    state.lastPinchDistance = 0;
+  };
+
+  viewport.addEventListener("touchend", () => {
+    if (state.isPinching) finishPinch();
+  });
+
+  viewport.addEventListener("touchcancel", () => {
+    if (state.isPinching) finishPinch();
+  });
 }
 
 function initActions() {
@@ -3924,14 +4020,45 @@ function initActions() {
 function initResponsive() {
   const observer = new ResizeObserver(() => {
     centerBoard();
+    if (!isMobileDetailMode()) {
+      state.mobileDetailOpen = true;
+    }
+    syncDetailDock();
   });
   observer.observe(viewport);
+
+  mobileDetailMedia.addEventListener("change", () => {
+    state.mobileDetailOpen = !isMobileDetailMode();
+    syncDetailDock();
+  });
+}
+
+function initDetailControls() {
+  state.mobileDetailOpen = !isMobileDetailMode();
+  syncDetailDock();
+
+  if (mobileDetailOpenBtn) {
+    mobileDetailOpenBtn.addEventListener("click", () => {
+      if (state.mobileDetailOpen) {
+        closeMobileDetail();
+      } else {
+        openMobileDetail();
+      }
+    });
+  }
+
+  if (detailCloseBtn) {
+    detailCloseBtn.addEventListener("click", () => {
+      closeMobileDetail();
+    });
+  }
 }
 
 initFilters();
 initZoom();
 initPan();
 initActions();
+initDetailControls();
 initResponsive();
 centerBoard();
 render();
